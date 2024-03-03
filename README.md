@@ -25,8 +25,7 @@ Skill Composer is a console application designed to facilitate AI-driven skill g
    ```json
    {
      "OpenAiKey": "YOUR_OPENAI_API_KEY",
-     "OpenAiModel": "gpt-4-0125-preview",
-     ...
+     "OpenAiModel": "gpt-4-0125-preview"     
    }
    ```
 
