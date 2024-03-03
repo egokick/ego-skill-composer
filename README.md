@@ -3,7 +3,7 @@
 Skill Composer is a console application designed to facilitate AI-driven skill generation and debugging for developers. Utilizing OpenAI's API, it allows users to generate skills based on predefined templates and debug them through a simple and interactive console interface.
 
 
-[![Video Title]([http://img.youtube.com/vi/VIDEO_ID/0.jpg](https://github.com/egokick/ego-skill-composer/raw/main/example.mp4)]
+[![Video Title](https://github.com/egokick/ego-skill-composer/raw/main/example.mp4)]
 
 
 ## Features
