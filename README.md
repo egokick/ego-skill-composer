@@ -44,14 +44,4 @@ After running the application, follow the on-screen prompts to either generate n
 2. **Load/Debug Previous Output:** Load and debug previously saved skill outputs for refinement.
  
 
-## Data_Labelling_Text
-5
-.
-ONLY OUTPUT A MAXIMUM OF 4 LABELS, PICK THE MOST IMPORTANT LABELS ONLY.
-.
-
-wem, andes, asia
-The text you are labelling is confluence documentation of software features
-
-
-The text is about software, the 3 regions asia, wem and andes are important.
+ 
