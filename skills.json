@@ -1,6 +1,48 @@
 {
 	"Skills": [
 		{
+			"SkillName": "Audio_Convert_Text_To_Speech_onyx_male",
+			"Description": "This requires you place a single text file in the data/input folder, the audio files will be placed in the data/output folder. The audio files will be numbered sequentially, each audio file contains up to 4096 characters. The audio will use the male voice 'onyx'",
+			"Temperature": 0.1,
+			"RepeatCount": 1,
+			"Tasks": [
+				{
+					"Number": 1,
+					"Name": "Set_Input_FilePath_And_Output_File_Content",
+					"Mode": "Internal",
+					"SpecialAction": "ReadFile"
+				},
+				{
+					"Number": 2,
+					"Name": "Audio_Convert_Input_Text_To_Speech",
+					"Mode": "Internal",
+					"Input": "{{Output[1]}}",
+					"SpecialAction": "TextToSpeechonyx"
+				}
+			]
+		},
+		{
+			"SkillName": "Audio_Convert_Text_To_Speech_nova_female",
+			"Description": "This requires you place a single text file in the data/input folder, the audio files will be placed in the data/output folder. The audio files will be numbered sequentially, each audio file contains up to 4096 characters. The audio will use the female voice 'nova'",
+			"Temperature": 0.1,
+			"RepeatCount": 1,
+			"Tasks": [
+				{
+					"Number": 1,
+					"Name": "Set_Input_FilePath_And_Output_File_Content",
+					"Mode": "Internal",
+					"SpecialAction": "ReadFile"
+				},
+				{
+					"Number": 2,
+					"Name": "Audio_Convert_Input_Text_To_Speech",
+					"Mode": "Internal",
+					"Input": "{{Output[1]}}",
+					"SpecialAction": "TextToSpeechnova"
+				}
+			]
+		},
+		{
 			"SkillName": "Text_Mysql_DB_Table_And_CSharp_API_And_React_UI",
 			"Temperature": 0.1,
 			"RepeatCount": 1,

@@ -3,3 +3,7 @@ bin
 obj
 Text_CSharp_Controller_And_Class_To_React_UI.json
 Text_Mysql_DB_Table_And_CSharp_API_And_React_UI.json
+data/output
+data/input
+Audio_Convert_Text_To_Speech_onyx_male1.json
+Audio_Convert_Text_To_Speech_onyx_male.json

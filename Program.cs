@@ -358,6 +358,51 @@ namespace skill_composer
                     Console.WriteLine($"Created {outputFile} with concatenated content of {filesWithLabel.Length} files.");
                 }
             }
+
+            if (task.SpecialAction.Contains("TextToSpeech"))
+            {
+                var voiceModel = task.SpecialAction.Replace("TextToSpeech", "");
+                var dataInputDirectory = PathHelper.GetDataInputDirectory();
+                var outputDirectory = PathHelper.GetDataOutputDirectory();
+
+                // send to openai for text to speech conversion: task.Input
+                Console.WriteLine("Converting text to audio...");
+
+                // Split the input into sentences.
+                var sentences = Regex.Split(task.Input, @"(?<=[\.!\?])\s+");
+
+                int fileIndex = 0;
+                StringBuilder chunkBuilder = new StringBuilder();
+                List<string> chunks = new List<string>();
+
+                foreach (var sentence in sentences)
+                {
+                    if (chunkBuilder.Length + sentence.Length > 4096)
+                    {
+                        chunks.Add(chunkBuilder.ToString());
+                        chunkBuilder.Clear();
+                    }
+
+                    chunkBuilder.Append(sentence).Append(" ");
+                }
+
+                // Add the last chunk if it's not empty.
+                if (chunkBuilder.Length > 0)
+                {
+                    chunks.Add(chunkBuilder.ToString());
+                }
+
+                // Convert each chunk to audio and save it.
+                foreach (var chunk in chunks)
+                {
+                    var audioBytes = ConvertTextToAudio(chunk, voiceModel).Result; // Assuming this is an async method
+
+                    var outputFilePath = Path.Combine(outputDirectory, $"audio_{++fileIndex}.mp3");
+                    File.WriteAllBytes(outputFilePath, audioBytes);
+
+                    Console.WriteLine($"Created {outputFilePath}.");
+                }                 
+            }
             return task;
         }
 
@@ -571,6 +616,50 @@ namespace skill_composer
             return filePath;            
         }
 
+        public static async Task<byte[]> ConvertTextToAudio(string inputText, string voiceModel)
+        {
+            var apiUrl = "https://api.openai.com/v1/audio/speech";
+
+            var requestBody = new
+            {
+                model = "tts-1-hd",
+                input = inputText,
+                voice = string.IsNullOrEmpty(voiceModel) ? "alloy" : voiceModel
+            };
+
+            try
+            {
+                // First, send the request but don't immediately read the response body
+                var response = await apiUrl
+                    .WithHeader("Authorization", $"Bearer {_settings.OpenAiKey}")
+                    .WithHeader("Content-Type", "application/json")
+                    .WithTimeout(600) // Sets the timeout to 6 minutes
+                    .PostJsonAsync(requestBody);
+
+                // Log the headers
+                LogResponseHeaders(response.Headers);
+
+                // Then, read the response as byte array
+                var responseBytes = await response.GetBytesAsync();
+
+                return responseBytes;
+            }
+            catch (FlurlHttpException ex)
+            {
+                System.Console.WriteLine($"Request failed: {ex.Message}");
+                if (ex.Call.Response != null)
+                {
+                    var errorBody = await ex.GetResponseStringAsync();
+                    System.Console.WriteLine("Error response body: " + errorBody + $" Status Code: {ex.Call.Response.StatusCode}");
+                }
+                else
+                {
+                    System.Console.WriteLine("Error: No response received");
+                }
+            }
+
+            return new byte[0];
+        }
 
         public static async Task<string> GetAIResponse(string userInput, Skill skill = null)
         {

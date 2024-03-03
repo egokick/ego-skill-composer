@@ -9,6 +9,7 @@ namespace skill_composer.Models
     public class Skill
     {
         public string SkillName { get; set; }
+        public string Description { get; set; }
         public string OpenAiModel { get; set; }
         public double Temperature { get; set; } = 0.1;
         public int RepeatCount = 1; 
