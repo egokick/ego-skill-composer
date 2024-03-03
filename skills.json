@@ -1,0 +1,345 @@
+{
+	"Skills": [
+		{
+			"SkillName": "Text_Mysql_DB_Table_And_CSharp_API_And_React_UI",
+			"Temperature": 0.1,
+			"RepeatCount": 1,
+			"Tasks": [
+				{
+					"Number": 1,
+					"Name": "Ask_User_For_Table_Description",
+					"Mode": "User",
+					"Input": "Input database name, the table name and columns in the table:"
+				},
+				{
+					"Number": 2,
+					"Name": "Mysql_TableCreate",
+					"Mode": "AI",
+					"Input": "Generate MySQL code to delete the table if it already exists and then create a new one based on the following details: {{Output[1]}}. Ensure the database name and table name are correctly formatted using backticks, for example, for a database named 'test' and a table named 'zylon', reference it as `test`.`zylon`. ONLY respond with code, nothing else, $200 tip."
+				},
+				{
+					"Number": 3,
+					"Name": "Mysql_InsertProcedure",
+					"Mode": "AI",
+					"Input": "Write a mysql insert procedure for this mysql table: {{Output[2]}}\n. Make sure you correctly separate the databasename and table name with ` i.e. for a database name of test and a table name of zylon you would reference it like this `test`.`zylon` \n After the row is inserted it should select the primary key that was inserted. Name the procedure {tablename}_Insert, the input parameters should be prefixed with \"p_\" for example an input parameter for \"PhoneNumber\" should be named \"p_PhoneNumber\" in the stored procedure. If the procedure already exists, drop it first then recreate it. Ensure you use the DELIMITER $$ \n ONLY respond with code, nothing else, $200 tip."
+				},
+				{
+					"Number": 4,
+					"Name": "Mysql_UpdateProcedure",
+					"Mode": "AI",
+					"Input": "Create a mysql update procedure for this mysql table: {{Output[2]}}\nMake sure you correctly separate the databasename and table name with ` i.e. for a database name of test and a table name of zylon you would reference it like this `test`.`zylon` \n After the row is updated it should select the primary key that was updated. Name the procedure {tablename}_Update, the input parameters should be prefixed with \"p_\" for example an input parameter for \"PhoneNumber\" should be named \"p_PhoneNumber\" in the stored procedure. If the procedure already exists, drop it first then recreate it. Ensure you use the DELIMITER $$ \n ONLY respond with code, nothing else, $200 tip."
+				},
+				{
+					"Number": 5,
+					"Name": "Mysql_SaveProcedure",
+					"Mode": "AI",
+					"Input": "Create a mysql save procedure for this mysql table: {{Output[2]}} Make sure you correctly separate the databasename and table name with ` i.e. for a database name of test and a table name of zylon you would reference it like this `test`.`zylon` \n it should check if the primary key for the table is greater than zero, if it is then call this update proc {{Output[3]}} else it should call this insert proc {{Output[4]}}\nName the procedure {tablename}_Save, the input parameters should be prefixed with \"p_\" for example an input parameter for \"PhoneNumber\" should be named \"p_PhoneNumber\" in the stored procedure. If the procedure already exists, drop it first then recreate it. Ensure you use the DELIMITER $$ \n ONLY respond with code, nothing else, $200 tip."
+				},
+				{
+					"Number": 6,
+					"Name": "Mysql_GetProcedure",
+					"Mode": "AI",
+					"Input": "Create a mysql get procedure for this mysql table: {{Output[2]}} it should get all the data for the table, it should have input parameters that can be 0 or an empty string or '0001-01-01 00:00:00' for date fields, if the input parameter is 0 or an empty string or '0001-01-01 00:00:00' it will not filter the table data on that parameter, if the input parameters are passed in and have a value, it will be used in the where statement to filter the returned data.\nName the procedure {tablename}_Get, the input parameters should be prefixed with \"p_\" for example an input parameter for \"PhoneNumber\" should be named \"p_PhoneNumber\" in the stored procedure. For date fields with a value you should make the filter greater than or equal to, so that a date range can be provided, example 1: `StartDate` >= p_StartDate, example 2: `EndDate` <= p_EndDate \n\n Make sure you correctly separate the databasename and table name with a backtick ` i.e. for a database name of test and a table name of zylon you would reference it like this `test`.`zylon` \n If the procedure already exists, drop it first then recreate it. Ensure you use the DELIMITER $$ \n ONLY respond with code, nothing else, $200 tip."
+				},
+				{
+					"Number": 7,
+					"Name": "CSharp_Class",
+					"Mode": "AI",
+					"Input": "Create a C# POCO class for this mysql table: {{Output[2]}}\n ONLY respond with code, nothing else, $200 tip."
+				},
+				{
+					"Number": 8,
+					"Name": "CSharp_SaveService",
+					"Mode": "AI",
+					"Input": "In a similar style to the following C# code public async Task<Zylon> SaveZylon(Zylon zylon)        {            var parameters = _databaseService.GetParameters(zylon);            var dt = await _databaseService.ExecuteCommand(\"secretary.Zylon_Save\", parameters);            if (dt?.Rows == null || dt.Rows.Count <= 0) return null;            zylon.ServiceId = _databaseService.GetInteger(dt.Rows[0], \"ZylonId\");            return zylon;        }\n create a new c# method to call this database procedure {{Output[5]}} for this C# class {{Output[7]}}. The save service should return the primary key of the table data that was saved, or null if it failed to save correctly. The method signature for the ExecuteCommand is this public async Task<DataTable> ExecuteCommand(string storedProcedure, Dictionary<string, string> parameters, int timeout = 10)\n. Ensure you include the database name in the execute command\n ONLY respond with code, nothing else, $200 tip."
+				},
+				{
+					"Number": 9,
+					"Name": "CSharp_GetService",
+					"Mode": "AI",
+					"Input": "In a similar style to the following C# methods\n\n public async Task<IList<BusinessHour>> GetBusinessHour(int businessId)       {\"p_BusinessId\", businessId.ToString() } };           var dt = await _databaseService.ExecuteCommand(\"secretary.BusinessHour_GetByBusinessId\", parameters);           if (dt?.Rows == null || (dt.Rows.Count <= 0)) return null;           var businessHours = PropertyMapper.ConvertTo<BusinessHour>(dt.Rows);           return businessHours;       }\n\n         public async Task<ServiceBooking> SaveServiceBooking(ServiceBooking serviceBooking)\n        {\n            var parameters = _databaseService.GetParameters(serviceBooking);\n            var dt = await _databaseService.ExecuteCommand(\"secretary.ServiceBooking_Save\", parameters);\n\n            if (dt?.Rows == null || dt.Rows.Count <= 0) return null;\n\n            serviceBooking.BookingId = _databaseService.GetInteger(dt.Rows[0], \"BookingId\");\n            return serviceBooking;\n        }\n\n create a new c# method to call this database procedure {{Output[5]}}, it will return data in the shape of this C# class {{Output[7]}}.  The method signature for the ExecuteCommand is this:\n\n public async Task<DataTable> ExecuteCommand(string storedProcedure, Dictionary<string, string> parameters, int timeout = 10)\n The GetParameters method is this\n\n public Dictionary<string, string> GetParameters<T>(T obj) \n        {\n            var parameters = obj.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public).ToDictionary(prop => $\"p_{prop.Name}\", prop => GetValue(obj, prop));\n\nreturn parameters;\n        }. There can be more than 1 table row returned by the stored proc, so handle this in the C# method. Given that null values cannot be passed to the ExecuteCommand, make sure you default any null values. Ensure you include the database name in the execute command. \n ONLY respond with code, nothing else, $200 tip."
+				},
+				{
+					"Number": 10,
+					"Name": "Mysql_DeleteProcedure",
+					"Mode": "AI",
+					"Input": "If the procedure already exists, drop it. Create a mysql delete procedure for this mysql table: {{Output[2]}}\nIt should take the primary key of the table as an input parameter, the input parameters should be prefixed with \"p_\" for example an input parameter for \"PhoneNumber\" should be named \"p_PhoneNumber\" in the stored procedure. If the row is successfully deleted it should return true, else it should return false. Name the procedure {tablename}_Delete. Keep the procedure simple, do not use transactions. Ensure you use the DELIMITER $$ \n ONLY respond with code, nothing else, $200 tip."
+				},
+				{
+					"Number": 11,
+					"Name": "CSharp_DeleteService",
+					"Mode": "AI",
+					"Input": "In a similar style to the following C# code /// <inheritdoc /> \n    public async Task<string> DeleteAddress(int addressId)\n     {         var parameters = new Dictionary<string, string> { { \"p_AddressId\", addressId.ToString() } };\n         var dt = await _databaseService.ExecuteCommand(\"secretary.Address_Delete\", parameters); \n\n         if (dt is not { Rows.Count: > 0 }) return null;\n\n         var result = _databaseService.GetInteger(dt.Rows[0], \"AddressId\");\n         return result.ToString();\n     }\n create a new c# method to call this database procedure {{Output[10]}}, it will return true if successfull. The C# model is {{Output[7]}}, only the primary key will be passed for the delete proc.\n  The method signature for the ExecuteCommand is this public async Task<DataTable> ExecuteCommand(string storedProcedure, Dictionary<string, string> parameters, int timeout = 10)\n. Ensure you include the database name in the execute command\n ONLY respond with code, nothing else, $200 tip."
+				},
+				{
+					"Number": 12,
+					"Name": "CSharp_Service_Full_Class",
+					"Mode": "AI",
+					"Input": "Combine the following C# methods {{Output[8]}} \n {{Output[9]}} \n {{Output[11]}} to create a full C# class with a constructor in a similar style to this C# service:     public class KnowledgeService : IKnowledgeService    {        private readonly IDatabaseService _databaseService;        /// <summary>        /// Default constructor.        /// </summary>        /// <param name=\"databaseService\"></param>        public KnowledgeService(IDatabaseService databaseService)        {            _databaseService = databaseService;        }  \nEnsure you use this C# class {{Output[7]}}\n\n ONLY respond with code, nothing else, $200 tip."
+				},
+				{
+					"Number": 13,
+					"Name": "CSharp_API_Controller",
+					"Mode": "AI",
+					"Input": "Given these C# classes {{Output[12]}} {{Output[7]}} \n create a C# controller that calls all of the service methods, ensure you do not use [FromBody]. Create it in a similar style to this C# controller: namespace Secretary.Controllers \n{\n    /// <summary>\n    /// Manages Business\nInformation.\n    /// </summary>\n    [Route(\"secretaryapi/[controller]/[action]\")]\n    [ApiController]\n    public class\nBusinessController : ControllerBase\n    {\nprivate readonly IBusinessService _businessService;\n        /// <summary>\n        ///\nDefault Constructor.\n        /// </summary>\n        /// <param name=\"businessService\"></param>\n        public\nBusinessController(IBusinessService businessService)\n        {\n            _businessService = businessService;\n        }\n\n        /// <summary>\n        /// GetServices.\n        /// </summary>\n        /// <param name=\"businessId\"></param>\n        /// <returns></returns>\n        [HttpGet]\n        [ActionName(\"GetServices\")]\n        public async Task<ActionResult<IList<Service>>>\nGetServices(int businessId)\n        {\n            var services = await _businessService.GetServicesByBusinessId(businessId);\n            if (services == null || services.Count == 0)\n                return NotFound(\"No services found for the given business ID.\");\n\n            return Ok(services);\n        }\n\n        /// <summary>\n        /// Saves a business record.\n        /// </summary>\n        /// <param name=\"business\"></param>\n        /// <returns></returns>\n        [HttpPost]\n        [ActionName(\"SaveBusiness\")]\n        public async\nTask<ActionResult<Business>> SaveBusiness(Business business)\n        {\n            business = await _businessService.SaveBusiness(business);\n            return business == null ? Problem(\"Failed to save business\") : Ok(business);\n        }. Make sure you explicitly use the ActionName in the controller methods you create. The get method should be flexible such that it can be called with no parameters or only a single parameter or multiple parameters. \n\n ONLY respond with code, nothing else, $200 tip."
+				},
+				{
+					"Number": 14,
+					"Name": "React_GetMethod",
+					"Mode": "AI",
+					"Input": "Create a user interface table in typescript React \"^18.2.0\". The react code will have a button to call the get method in the following C# API, it will then display the data in the UI table, the get method can return no data or it can return multiple rows. \n This is the C# class that describes each column in the table {{Output[7]}}\n. This is the C# api it will call {{Output[13]}}\n \n The URL/api endpoint should conform to the route in the api i.e. [Route(\"secretaryapi/[controller]/[action]\")] \n Use the datatype string for date fields, ensure the TypeScript interface uses camelCase e.g. (`phoneCallId`). The base url is: https:\\//localhost:44372 Keep all the code in a single page. ONLY respond with code, nothing else, $200 tip."
+				},
+				{
+					"Number": 15,
+					"Name": "React_SaveMethod",
+					"Mode": "AI",
+					"Input": "Given the following typescript React \"^18.2.0\" code, modify the react code so that after the data has been loaded into the table, you can edit each row in the table and save it by calling the save method in the following api. Here is the existing react code: {{Output[14]}} here is the api with the save method:  {{Output[13]}}, here are the C# class properties for the table columns:  {{Output[7]}} \n.The URL/api endpoint should conform to the route in the api i.e. [Route(\"secretaryapi/[controller]/[action]\")] \n Keep all the code in a single page. Use the datatype string for date fields, ensure the TypeScript interface uses camelCase e.g. (`phoneCallId`). The base url is: https:\\//localhost:44372 ONLY respond with code, nothing else, $200 tip."
+				},
+				{
+					"Number": 16,
+					"Name": "React_DeleteMethod",
+					"Mode": "AI",
+					"Input": "Given the following typescript React \"^18.2.0\" code, modify the react code so that after the data has been loaded into the table, you can click a button next to each row in the table to delete that row, this will call the delete method in the api listed below. Here is the existing react code: {{Output[14]}} here is the api with the delete method:  {{Output[13]}}, here are the C# class properties for the table columns:  {{Output[7]}} \n.The URL/api endpoint should conform to the route in the api i.e. [Route(\"secretaryapi/[controller]/[action]\")] \n Keep all the code in a single page. Use the datatype string for date fields, ensure the TypeScript interface uses camelCase e.g. (`phoneCallId`).The base url is: https:\\//localhost:44372. ONLY respond with code, nothing else, $200 tip."
+				},
+				{
+					"Number": 17,
+					"Name": "React_FilterTableColumns",
+					"Mode": "AI",
+					"Input": "In the typescript React \"^18.2.0\" code, modify the existing table header columns so that they are input fields that will filter each column on the text you input. The existing get request will behave the same on page load. After filtering the table column, a get request to the same endpoint will be made, passing the query parameters from the table column filters, use the properties in the existing typescript interface. Ensure the get request is called automatically upon the filter change, you may need to useEffect hook to listen for changes with a 500ms setTimeout. When the get request correctly returns a 404, the table should update and display no records, i.e. the table should be empty when the get request returns a 404 status code. This is the code to modify: {{Output[14]}}. IT IS VITAL THAT YOU INCLUDE ALL EXISTING FUNCTIONALITY, DO NOT BREAK ANYTHING THAT CURRENTLY WORKS. Keep all the code in a single page. ONLY respond with code, nothing else, $200 tip."
+				},
+				{
+					"Number": 18,
+					"Name": "React_InsertMethod",
+					"Mode": "AI",
+					"Input": "Create a user interface form in typescript React \"^18.2.0\". The react code will have a button to call the save method in this C# API {{Output[13]}}.\n\n The C# class is {{Output[7]}}\n\n The primary key will be 0.\n The URL/api endpoint should conform to the route in the api i.e. [Route(\"secretaryapi/[controller]/[action]\")] \n Use the datatype string for date fields, ensure the TypeScript interface uses camelCase e.g. (`phoneCallId`). The base url is: https:\\//localhost:44372. Keep all the code in a single page. ONLY respond with code, nothing else, $200 tip."
+				},
+				{
+					"Number": 19,
+					"Name": "React_CombineMethods",
+					"Mode": "AI",
+					"Input": "Listed below are 5 typescript React \"^18.2.0\" files written by different software engineers to interact with the same API. Examine them closely and understand how each of the GET, SAVE, DELETE, FILTER and INSERT features are implemented. Produce a new react file that #1 loads the table data. #2 allows you to edit each row in the table and save the table row. #3 Allows you to delete a table row. #4 Allows you to filter the table columns. #5 Allows you to save/insert a new record. Here are the 5 different react files that I want you to examine: get data file #1: {{Output[14]}} save data file #2: {{Output[15]}} delete data file #3: {{Output[16]}}\n filter data file #4: {{Output[17]}}\n insert data file #5: {{Output[18]}}. Keep all the code in a single page, The base url is: https:\\//localhost:44372. Use the datatype string for date fields, ensure the TypeScript interface uses camelCase e.g. (`phoneCallId`). Avoid using new libraries. Ensure everything is strongly typed for typescript. IT IS EXTEREMELY IMPORTANT THAT YOU INCLUDE ALL EXISTING FUNCTIONALITY, DO NOT BREAK ANYTHING THAT CURRENTLY WORKS. ONLY respond with code, nothing else, $200 tip."
+				},
+				{
+					"Number": 20,
+					"Name": "Mysql_SaveTest",
+					"Mode": "AI",
+					"Input": "Given this mysql save procedure {{Output[5]}} Create 3 mysql calls to the procedure with mock data, use a primary key of 0 so that new data is inserted.\n ONLY respond with code, nothing else, $200 tip."
+				}
+			]
+		},
+		{
+			"SkillName": "Text_CSharp_Controller_And_Class_To_React_UI",
+			"Temperature": 0.1,
+			"RepeatCount": 1,
+			"Tasks": [
+				{
+					"Number": 1,
+					"Name": "Ask_User_For_ControllerMethod",
+					"Mode": "User",
+					"Input": "Copy and paste the C# api get and save methods. Include the controller name and route:"
+				},
+				{
+					"Number": 2,
+					"Name": "Ask_User_For_CSharp_Class",
+					"Mode": "User",
+					"Input": "Copy and paste the C# Class properties if there is a custom class in the controller method:"
+				},
+				{
+					"Number": 3,
+					"Name": "React_GetMethod",
+					"Mode": "AI",
+					"Input": "Create a user interface table in typescript React \"^18.2.0\". The react code will have a button to call the get method in the following C# API, it will then display the data in the UI table, the get method can return no data or it can return multiple rows. \n This is the C# class that describes each column in the table {{Output[2]}}\n. This is the C# api it will call {{Output[1]}}\n \n The URL/api endpoint should conform to the route in the api i.e. [Route(\"secretaryapi/[controller]/[action]\")] \n Use the datatype string for date fields, ensure the TypeScript interface uses camelCase e.g. (`phoneCallId`). The base url is: https:\\//localhost:44372 Keep all the code in a single page. ONLY respond with code, nothing else, $200 tip."
+				},
+				{
+					"Number": 4,
+					"Name": "React_SaveMethod",
+					"Mode": "AI",
+					"Input": "Given the following typescript React \"^18.2.0\" code, modify the react code so that after the data has been loaded into the table, you can edit each row in the table and save it by calling the save method in the following api. Here is the existing react code: {{Output[3]}} here is the api with the save method:  {{Output[1]}}, here are the C# class properties for the table columns:  {{Output[2]}} \n.The URL/api endpoint should conform to the route in the api i.e. [Route(\"secretaryapi/[controller]/[action]\")] \n Keep all the code in a single page. Use the datatype string for date fields, ensure the TypeScript interface uses camelCase e.g. (`phoneCallId`). The base url is: https:\\//localhost:44372 ONLY respond with code, nothing else, $200 tip."
+				},
+				{
+					"Number": 5,
+					"Name": "React_CombineMethods",
+					"Mode": "AI",
+					"Input": "Listed below are 2 typescript React \"^18.2.0\" files written by different software engineers to interact with the same API. Examine them closely and understand how each of the GET and SAVE features are implemented. Produce a new react file that #1 loads the table data. #2 allows you to edit each row in the table and save the table row. #3 Allows you to save/insert a new record. get data file #1: {{Output[3]}} save data file #2: {{Output[4]}}. Keep all the code in a single page, The base url is: https:\\//localhost:44372. Use the datatype string for date fields, ensure the TypeScript interface uses camelCase e.g. (`phoneCallId`). Avoid using new libraries. Ensure everything is strongly typed for typescript. IT IS EXTEREMELY IMPORTANT THAT YOU INCLUDE ALL EXISTING FUNCTIONALITY, DO NOT BREAK ANYTHING THAT CURRENTLY WORKS. ONLY respond with code, nothing else, $200 tip."
+				}
+			]
+		},
+		{
+			"SkillName": "Text_Quick_Test",
+			"OpenAiModel": "gpt-4-0125-preview",
+			"Temperature": 0.1,
+			"RepeatCount": 1,
+			"Tasks": [
+				{
+					"Number": 1,
+					"Name": "Ask_User_For_Table_Description",
+					"Mode": "User",
+					"Input": "Input database name, the table name and columns in the table:"
+				},
+				{
+					"Number": 2,
+					"Name": "Mysql_InsertProcedure",
+					"Mode": "AI",
+					"Input": "Generate MySQL code to delete the table if it already exists and then create a new one based on the following details: {{Output[1]}}. Ensure the database name and table name are correctly formatted using backticks, for example, for a database named 'test' and a table named 'zylon', reference it as `test`.`zylon`. ONLY respond with code, nothing else, $200 tip."
+				}
+			]
+		},
+		{
+			"SkillName": "Text_Merge_Labels",
+			"OpenAiModel": "gpt-4-0125-preview",
+			"Temperature": 0.1,
+			"RepeatCount": 1,
+			"Tasks": [
+				{
+					"Number": 1,
+					"Name": "GetLabels",
+					"Mode": "User",
+					"Input": "Input a list of labels:"
+				},
+				{
+					"Number": 2,
+					"Name": "Label_Merge",
+					"Mode": "AI",
+					"Input": "Review these labels and group them by which fall under a similar category, explain why. If one of the labels might be a feature name of a product, keep this as a distinct category: {{Output[1]}}."
+				},
+				{
+					"Number": 3,
+					"Name": "Label_Merge",
+					"Mode": "AI",
+					"Input": "The following text contains some pre amble and then a list of categories and sub categories. Extract only the categories from the response and respond with nothing else. BEGIN TEXT: {{Output[2]}}\nEND TEXT."
+				}
+			]
+		},
+		{
+			"SkillName": "DataInput_Label_Text",
+			"OpenAiModel": "gpt-4-0125-preview",
+			"DisableFileLogging": false,
+			"AppendFileLogging": true,
+			"Temperature": 0.1,
+			"RepeatCount": 2147483647,
+			"Tasks": [
+				{
+					"Number": 1,
+					"Name": "Data_GetDefinedLabels",
+					"Mode": "User",
+					"Input": "Type . for default mode. Files are read from the data/input folder and moved to the into the data/output folder. Are there known labels you would like the AI to use for this data, provide a comma separated list:"
+				},
+				{
+					"Number": 2,
+					"Name": "Data_GetLabellingMode",
+					"Mode": "User",
+					"Input": "Type . for default labelling mode. For exclusive mode, copy and paste this text: <= ONLY OUTPUT LABELS THAT ARE IN THIS LIST, IF NO APPROPRIATE LABEL APPLIES TO THE TEXT, OUTPUT LABEL AS 'UNKNOWN'"
+				},
+				{
+					"Number": 3,
+					"Name": "Data_GetAdditionalInfo",
+					"Mode": "User",
+					"Input": "Is there any additional context that you want to give the AI that may assist with labelling? Warning this can negatively impact the labelling so be succint and accurate. Type . if not"
+				},
+				{
+					"Number": 4,
+					"Name": "Set_Input_FilePath_And_Output_File_Content",
+					"Mode": "Internal",
+					"SpecialAction": "ReadFile"
+				},
+				{
+					"Number": 5,
+					"Name": "Output_Labels_For_File",
+					"Mode": "AI",
+					"Input": "Read the following text information and output one or more high level, comma separated labels. ONLY OUTPUT A MAXIMUM OF 4 LABELS, PICK THE MOST IMPORTANT LABELS ONLY. Names of features are important {{Output[3]}}. The title may be a useful indicator. Labels: {{Output[1]}} {{Output[2]}}\n START OF FILE TO LABEL: {{Output[4]}}\n\n END OF FILE.\n Respond with the labels in alphabetical order. Do not put any special characters in the labels, use alphanumeric labels only. ONLY respond with labels, nothing else, $200 tip."
+				},
+				{
+					"Number": 6,
+					"Name": "Data_AILabel",
+					"Mode": "Internal",
+					"SpecialAction": "RenameFile",
+					"Input": "{{Output[5]}}",
+					"FilePath": "{{FilePath[4]}}"
+				},
+				{
+					"Number": 7,
+					"Name": "Data_AILabel",
+					"Mode": "Internal",
+					"SpecialAction": "MoveFileToOutput",
+					"Input": "{{FilePath[6]}}"
+				}
+			]
+		},
+		{
+			"SkillName": "DataInput_Label_Images",
+			"OpenAiModel": "gpt-4-vision-preview",
+			"Temperature": 0.1,
+			"RepeatCount": 1,
+			"Tasks": [
+				{
+					"Number": 1,
+					"Name": "Data_GetDefinedLabels",
+					"Input": "NOT IMPLEMENTED YET WORK IN PROGRESS PLEASE IGNORE Type . for default mode. Files are read from the data/input folder and moved to the into the data/output folder. Are there known labels you would like the AI to use for this data, provide a comma separated list:"
+				}
+			]
+		},
+		{
+			"SkillName": "DataOutput_MoveFilesToInput",
+			"OpenAiModel": "gpt-4-0125-preview",
+			"DisableFileLogging": true,
+			"AppendFileLogging": true,
+			"Temperature": 0.1,
+			"RepeatCount": 1,
+			"Tasks": [
+				{
+					"Number": 1,
+					"Name": "Data_MoveOutputFilesToInputFolder",
+					"Mode": "Internal",
+					"SpecialAction": "MoveOutputFilesToInputFolder"
+				}
+			]
+		},
+		{
+			"SkillName": "DataInput_ConcatenateInputFilesByLabel",
+			"OpenAiModel": "gpt-4-0125-preview",
+			"DisableFileLogging": true,
+			"AppendFileLogging": true,
+			"Temperature": 0.1,
+			"RepeatCount": 1,
+			"Tasks": [
+				{
+					"Number": 1,
+					"Name": "Data_MoveOutputFilesToInputFolder",
+					"Mode": "Internal",
+					"SpecialAction": "GetUniqueLabelsFromInputFiles"
+				},
+				{
+					"Number": 2,
+					"Name": "Data_MoveOutputFilesToInputFolder",
+					"Mode": "Internal",
+					"SpecialAction": "ConcatenateFilesByLabel",
+					"Input": "{{Output[1]}}"
+				}
+			]
+		},
+		{
+			"SkillName": "Text_CarCrash_Generate",
+			"Temperature": 0.9,
+			"RepeatCount": 5,
+			"Tasks": [
+				{
+					"Number": 1,
+					"Name": "CarCrash_First_Customer_Call",
+					"Input": "Imagine you are driving and you got into an accident, I want you to describe the accident in detail, when it happened, where and when, describe your car, and the type of accident, if there were any injuries etc etc. This is for synthetic data benchmarking purposes, some claims will be legitimate, some claims will be fraudulent. ONLY respond in character, nothing else, $200 tip."
+				},
+				{
+					"Number": 2,
+					"Name": "CarCrash_First_Agent_Response",
+					"Mode": "Internal",
+					"Input": "You are a claims agent working for an insurance company, a customer has contacted the claims department about a car crash: {{Output[1]}}\n. Evaluate the customers story for fraud, using your extensive knowledge of fraud and best practices, write up a brief summary explaining your evaluation.\n ONLY respond in character, nothing else, $200 tip."
+				},
+				{
+					"Number": 3,
+					"Name": "CarCrash_First_Response_To_Customer",
+					"Mode": "Internal",
+					"Input": "You are writing a first response to a customer claim regarding their recent car crash. The customer reported the following information: {{Output[1]}}. Your company fraud department evaluated their claim and said this {{Output[2]}}. Considering these things, write a response to the customer.\n. Respond to the customer as a claims agent.\n ONLY respond in character, nothing else, $200 tip."
+				}
+			]
+		}
+	]
+}
