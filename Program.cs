@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text; 
 using Flurl.Http;
 using Newtonsoft.Json;
 using skill_composer.Helper;
@@ -12,7 +7,12 @@ using System.Text.RegularExpressions;
 using Flurl.Util;
 using Polly;
 using Task = System.Threading.Tasks.Task;
-
+using System.Diagnostics;
+using NAudio.CoreAudioApi;
+using NAudio.Wave; // Make sure to include this namespace
+using System.Numerics;
+using MathNet.Numerics.IntegralTransforms;
+using System.Net.WebSockets;
 
 namespace skill_composer
 {
@@ -73,6 +73,7 @@ namespace skill_composer
             // This is used to overwrite 
             var skillTemplate = skillSet.Skills[si - 1];
             Console.WriteLine("Selected skill: " + skillTemplate.SkillName);
+            Console.WriteLine(skillTemplate?.Description ?? "");
 
             Skill selectedSkill = new Skill() { RepeatCount = skillTemplate.RepeatCount };
 
@@ -85,7 +86,7 @@ namespace skill_composer
                 {
                     var task = selectedSkill.Tasks[i];
 
-                    task = ProcessTask(task, selectedSkill);
+                    task = ProcessTask(task, selectedSkill).Result;
 
                     if (task.HaltProcessing)
                     {
@@ -96,7 +97,7 @@ namespace skill_composer
                     PrintAIResponse(task);
                 }
 
-                if (!selectedSkill.DisableFileLogging) WriteToFile(selectedSkill);
+                if (!selectedSkill.DisableFileLogging) WriteSkillToFile(selectedSkill);
                 
                 if (selectedSkill.RepeatCount <= 0) break;
             }
@@ -140,7 +141,7 @@ namespace skill_composer
         }
 
 
-        public static void WriteToFile(Skill selectedSkill)
+        public static void WriteSkillToFile(Skill selectedSkill)
         {
             if (!selectedSkill.AppendFileLogging)
             {
@@ -221,7 +222,7 @@ namespace skill_composer
         // 2 Ask User the Input if type is "User" 
         // 3 Ask AI The Input if type is "AI"
         // 4 Process special actions
-        public static Models.Task ProcessTask(Models.Task task, Skill selectedSkill)
+        public static async Task<Models.Task> ProcessTask(Models.Task task, Skill selectedSkill)
         {
             // Inserts outputs from previous steps into the current step
             task = ReplaceInput(task, selectedSkill);
@@ -240,6 +241,11 @@ namespace skill_composer
             }
 
             // 3. Process special actions
+
+            if (string.IsNullOrEmpty(task.SpecialAction))
+            {
+                return task;
+            }
 
             if (task.SpecialAction == "ReadFile")
             {
@@ -401,9 +407,397 @@ namespace skill_composer
                     File.WriteAllBytes(outputFilePath, audioBytes);
 
                     Console.WriteLine($"Created {outputFilePath}.");
-                }                 
+                }
             }
+
+            if(task.SpecialAction == "SpeechToTextTranslateToEnglish")
+            {
+                var outputDirectory = PathHelper.GetDataOutputDirectory();
+                var inputFilePath = PathHelper.GetDataInputFilePath();
+                var inputFileName = Path.GetFileName(inputFilePath);
+
+                if(string.IsNullOrEmpty(inputFilePath))
+                {
+                    return task;    
+                }
+                else
+                {
+                    var extension = Path.GetExtension(inputFilePath);
+                    
+                    if(extension != ".mp3")
+                    {
+                        // try to convert it to an mp3 with ffmpeg 
+                        var mp3FileName = inputFileName.Replace(extension, ".mp3");
+                        var mp3FilePath = Path.Combine(outputDirectory, mp3FileName);
+
+                        ConvertToMp3(inputFilePath, mp3FilePath);
+                        Console.WriteLine($"Finished conversion: {mp3FilePath}");
+
+                        inputFilePath = mp3FilePath;
+                    }
+                    // if the file is above 25MB it must be split
+                    List<string> audioFiles = SplitAndTranslateAudio(inputFilePath).Result;
+                    List<string> translatedTexts = new List<string>();
+
+                    foreach (var filePath in audioFiles)
+                    {
+                        string translatedText = TranslateAudioToEnglishText(filePath).Result;
+                        translatedTexts.Add(translatedText);
+                        Console.WriteLine(translatedText);
+
+                        // Optional: clean up if the file was a split part
+                        if (filePath != inputFilePath) // This check prevents deleting the original file if it wasn't split
+                        {
+                            File.Delete(filePath);
+                        }
+                    }
+
+                    // If you need to combine the texts into a single string
+                    string combinedTranslatedText = string.Join(" ", translatedTexts);
+                    task.Output = combinedTranslatedText;
+
+                    var translatedTextFileName = inputFileName.Replace(extension, ".txt");
+                    var translatedTextFilePath = Path.Combine(outputDirectory, translatedTextFileName);
+
+                    File.WriteAllText(translatedTextFilePath, combinedTranslatedText);
+                     
+                }
+            }
+
+            if(task.SpecialAction == "SpeechToTextRealTime")
+            {
+                var aiToken = GetAssemblyAiWebsocketTemporaryToken(360000).Result;
+                var assemblyAiWebSocket = new ClientWebSocket();
+                var serverUri = new Uri($"wss://api.assemblyai.com/v2/realtime/ws?sample_rate=16000&token={aiToken}&encoding=pcm_s16le&language_code=es");
+
+                await assemblyAiWebSocket.ConnectAsync(serverUri, CancellationToken.None);
+
+                // Using WasapiLoopbackCapture to capture audio from playback device
+                var enumerator = new MMDeviceEnumerator();
+                var devices = enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
+
+                Console.WriteLine("Available Playback Devices:");
+                foreach (var device in devices)
+                {
+                    Console.WriteLine($"Device ID: {device.ID}, Device Name: {device.FriendlyName}");
+                }
+
+                var defaultPlaybackDevice = enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
+                Console.WriteLine($"Default Playback Device: {defaultPlaybackDevice.FriendlyName}");
+
+                using var capture = new WasapiLoopbackCapture(defaultPlaybackDevice);
+
+                var ffmpegStartInfo = new ProcessStartInfo
+                {
+                    FileName = "ffmpeg",
+                    Arguments = "-f f32le -ar 48000 -ac 2 -i pipe:0 -f s16le -ar 16000 -ac 1 -",
+                    UseShellExecute = false,
+                    RedirectStandardInput = true,
+                    RedirectStandardOutput = true,
+                    CreateNoWindow = true
+                };
+
+                using var ffmpegProcess = new Process { StartInfo = ffmpegStartInfo };
+                ffmpegProcess.Start();
+
+                capture.DataAvailable += async (sender, e) =>
+                {
+                    // Write the raw capture data to FFmpeg's stdin
+                    await ffmpegProcess.StandardInput.BaseStream.WriteAsync(e.Buffer.AsMemory(0, e.BytesRecorded));
+                    await ffmpegProcess.StandardInput.BaseStream.FlushAsync();
+
+                }; 
+
+                capture.RecordingStopped += (sender, e) =>
+                {
+                    ffmpegProcess.StandardInput.Close(); // Signals FFmpeg to finish
+                };
+
+                var readBuffer = new byte[4096];
+                var readTask = Task.Run(async () =>
+                {
+                    int count;
+                    while ((count = await ffmpegProcess.StandardOutput.BaseStream.ReadAsync(readBuffer, 0, readBuffer.Length)) > 0)
+                    {
+                        await assemblyAiWebSocket.SendAsync(new ArraySegment<byte>(readBuffer, 0, count), WebSocketMessageType.Binary, true, CancellationToken.None);
+                    }
+                });
+
+                capture.StartRecording();
+                
+                await ReceiveMessages(assemblyAiWebSocket);
+
+                Console.WriteLine("Recording... Press Enter to stop.");
+                Console.ReadLine();
+
+                capture.StopRecording();
+                await readTask; // Ensure we finish reading FFmpeg's output
+
+                await assemblyAiWebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, CancellationToken.None);
+
+                //Console.WriteLine("Playback Devices:");
+                //DisplayPlaybackDeviceAudio();
+            }
+
             return task;
+        }
+         
+        static async Task ReceiveMessages(ClientWebSocket assemblyAiWebSocket)
+        {
+            var buffer = new byte[1024 * 4];
+
+            try
+            {
+                while (assemblyAiWebSocket.State == WebSocketState.Open)
+                {
+                    var result = await assemblyAiWebSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+
+                    if (result.MessageType == WebSocketMessageType.Close)
+                    {
+                        Console.WriteLine("WebSocket closed by the server.");
+                        break;
+                    }
+                    else
+                    {
+                        var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
+                        var transcription = JsonConvert.DeserializeObject<AssemblyAiTranscription>(message);
+
+                        if (transcription.message_type == "FinalTranscript")
+                        {
+                            //Console.WriteLine(JsonConvert.SerializeObject(transcription));
+                            Console.WriteLine($"{transcription.text}");
+                        }
+                    }
+                }
+            }
+            catch (WebSocketException ex)
+            {
+                Console.WriteLine($"WebSocket exception: {ex.Message}");
+            }
+            finally
+            {
+                if (assemblyAiWebSocket.State != WebSocketState.Closed)
+                {
+                    await assemblyAiWebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, CancellationToken.None);
+                }
+            }
+        }
+
+        private static async Task<string> GetAssemblyAiWebsocketTemporaryToken(int expiresIn)
+        {
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+
+            var requestUri = "https://api.assemblyai.com/v2/realtime/token";
+            var responseString = await requestUri
+                .WithHeader("authorization", _settings.AssemblyAIApiKey)
+                .PostJsonAsync(new { expires_in = expiresIn })
+                .ReceiveString();
+
+            var tokenResponse = JsonConvert.DeserializeObject<TemporaryTokenResponse>(responseString);
+
+            stopwatch.Stop();
+            Console.WriteLine($"GetAssemblyAiWebsocketTemporaryToken: {stopwatch.ElapsedMilliseconds} ms" );
+
+            return tokenResponse?.token ?? throw new InvalidOperationException("Failed to get the temporary token.");
+        }
+
+
+        private const int FFTLength = 1024; // Power of two for FFT
+        private static float[] fftBuffer = new float[FFTLength];
+        private static Complex[] fftComplex = new Complex[FFTLength];
+        private static int fftPos = 0;
+        private static string[] barChars = { " ", ".", ":", "-", "=", "+", "*", "#", "%" };
+        private static string audioDeviceName; // Store the audio device name
+
+        public static void DisplayPlaybackDeviceAudio()
+        {
+            // Use MMDeviceEnumerator to get the default playback device
+            var enumerator = new MMDeviceEnumerator();
+            var defaultDevice = enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
+            audioDeviceName = defaultDevice.FriendlyName; // Store the friendly name
+
+            using var capture = new WasapiLoopbackCapture(defaultDevice); // Initialize capture with the default device
+            capture.DataAvailable += Capture_DataAvailable;
+
+            Console.WriteLine("AudioDevices:");
+            capture.StartRecording();
+            Console.ReadLine();
+            capture.StopRecording();
+        }
+
+        private static void Capture_DataAvailable(object sender, WaveInEventArgs e)
+        {
+            if (e.BytesRecorded == 0) return;
+
+            // Assuming 32 bit IEEE float audio format
+            for (int index = 0; index < e.BytesRecorded; index += 4)
+            {
+                if (fftPos < FFTLength)
+                {
+                    float sample = BitConverter.ToSingle(e.Buffer, index);
+                    fftBuffer[fftPos++] = sample;
+
+                    if (fftPos == FFTLength)
+                    {
+                        ProcessFFT();
+                        fftPos = 0;
+                    }
+                }
+            }
+        }
+
+        private static void ProcessFFT()
+        {
+            // Convert real numbers to complex for FFT
+            for (int i = 0; i < FFTLength; i++)
+            {
+                fftComplex[i] = new Complex(fftBuffer[i], 0);
+            }
+
+            Fourier.Forward(fftComplex, FourierOptions.Matlab); // Perform FFT
+
+            // Map FFT output to bars
+            string visualRepresentation = MapFrequenciesToBars();
+
+            // Include the audio device name with the visual representation
+            Console.Write($"\r{audioDeviceName}: {visualRepresentation}");
+        }
+
+        private static string MapFrequenciesToBars()
+        {
+            int bandCount = 8; // Divide the spectrum into 8 bands
+            string[] volumeBars = new string[bandCount];
+
+            for (int i = 0; i < bandCount; i++)
+            {
+                double avgMagnitude = 0;
+                int start = i * (FFTLength / 2) / bandCount; // Only use first half of FFT results
+                int end = (i + 1) * (FFTLength / 2) / bandCount;
+                for (int j = start; j < end; j++)
+                {
+                    avgMagnitude += fftComplex[j].Magnitude;
+                }
+                avgMagnitude /= (end - start);
+
+                // Map avgMagnitude to bar character
+                int charIndex = (int)Math.Floor(avgMagnitude * 10); // Simplified scaling
+                charIndex = Math.Min(charIndex, barChars.Length - 1);
+                volumeBars[i] = barChars[charIndex];
+            }
+
+            return string.Join(" ", volumeBars);
+        }
+
+
+        public static async Task<string> TranslateAudioToEnglishText(string filePath)
+        {
+            var jsonResponse = await "https://api.openai.com/v1/audio/translations"
+                .WithHeader("Authorization", $"Bearer {_settings.OpenAiKey}")
+                .PostMultipartAsync(mp => mp
+                    .AddFile("file", filePath)
+                    .AddString("model", "whisper-1"))
+                .ReceiveString();
+
+            var response = JsonConvert.DeserializeObject<Dictionary<string, string>>(jsonResponse);
+            return response?["text"] ?? "";
+        }
+
+        public static async Task<List<string>> SplitAndTranslateAudio(string inputFilePath)
+        {
+            const int maxFileSize = 5214400; // 5MB in bytes
+            List<string> filePaths = new List<string>();
+            FileInfo fileInfo = new FileInfo(inputFilePath);
+
+            if (fileInfo.Length > maxFileSize)
+            {
+                // Split the file
+                string directoryPath = Path.GetDirectoryName(inputFilePath);
+                string fileBaseName = Path.GetFileNameWithoutExtension(inputFilePath);
+                string fileExtension = Path.GetExtension(inputFilePath);
+
+                string outputPathFormat = $"{directoryPath}/{fileBaseName}_part%03d{fileExtension}";
+
+                // Command to split the audio file into parts smaller than 25MB
+                string ffmpegCmd = $"-i \"{inputFilePath}\" -f segment -segment_time 300 -c copy \"{outputPathFormat}\"";
+                RunFFmpegCommand(ffmpegCmd);
+
+                // Collect the paths of the split files
+                filePaths.AddRange(Directory.GetFiles(directoryPath, $"{fileBaseName}_part*{fileExtension}"));
+            }
+            else
+            {
+                // File size is within the limit, use the original file
+                filePaths.Add(inputFilePath);
+            }
+
+            return filePaths;
+        }
+        private static void RunFFmpegCommand(string arguments)
+        {
+            ProcessStartInfo startInfo = new ProcessStartInfo
+            {
+                FileName = "ffmpeg",
+                Arguments = arguments,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
+
+            using Process process = Process.Start(startInfo);
+            // Asynchronously read the standard output and standard error of the process
+            // This prevents the process from blocking due to the streams being full
+            var outputTask = process.StandardOutput.ReadToEndAsync();
+            var errorTask = process.StandardError.ReadToEndAsync();
+
+            // Wait for the process to exit
+            process.WaitForExit();
+
+            // Now that the process has exited, ensure we have all the output.
+            var output = outputTask.Result;
+            var error = errorTask.Result;
+
+            if (process.ExitCode != 0)
+            {
+                throw new Exception($"FFmpeg error: {error}");
+            }
+        }
+
+
+        private static void ConvertToMp3(string originalFilePath, string mp3FilePath)
+        {
+            Console.WriteLine($"Converting file to mp3: {originalFilePath}");
+
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = "ffmpeg",
+                Arguments = $"-i \"{originalFilePath}\" \"{mp3FilePath}\"",
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
+
+            using (var process = new Process { StartInfo = startInfo })
+            {
+                process.Start();
+
+                // Read error output (where FFmpeg writes most of its status messages) first
+                var error = process.StandardError.ReadToEnd();
+
+                // Optionally, read the standard output if needed
+                var output = process.StandardOutput.ReadToEnd();
+
+                process.WaitForExit();
+
+                if (process.ExitCode != 0)
+                {
+                    throw new Exception($"FFmpeg conversion failed: {error}");
+                }
+
+                Console.WriteLine("Conversion successful: " + error); // FFmpeg writes conversion success messages to StandardError as well
+            }
         }
 
         public static List<string> GetSavedOutputFilePaths(SkillSet skillSet)
@@ -486,7 +880,7 @@ namespace skill_composer
                 switch (si4)
                 {
                     case 1:
-                        selectedTask = ProcessTask(selectedTask, selectedSkill);
+                        selectedTask = ProcessTask(selectedTask, selectedSkill).Result;
                         PrintAIResponse(selectedTask);
                         break;
                     case 2:
@@ -529,8 +923,6 @@ namespace skill_composer
             Console.ForegroundColor = currentForegroundColor;
             Console.WriteLine(task.Output);
         }
-
-
 
         public static Models.Task ReplaceInput(Models.Task task, Skill selectedSkill)
         {
@@ -616,6 +1008,27 @@ namespace skill_composer
             return filePath;            
         }
 
+        private static DateTime? _rateLimitResetTime = null;
+        private static void CheckAndSetRateLimiting(IFlurlResponse response)
+        {
+            // Access headers directly from the response
+            var headers = response.Headers;
+
+            // Attempt to find the headers by name
+            var remainingRequestsHeader = headers.FirstOrDefault(h => h.Name == "x-ratelimit-remaining-requests");
+            var resetAfterHeader = headers.FirstOrDefault(h => h.Name == "x-ratelimit-reset-requests");
+
+            // Check if the headers have non-empty values to determine if they were found
+            if (!string.IsNullOrEmpty(remainingRequestsHeader.Value) && int.TryParse(remainingRequestsHeader.Value, out var remaining) && remaining == 0)
+            {
+                if (!string.IsNullOrEmpty(resetAfterHeader.Value) && resetAfterHeader.Value.EndsWith("s"))
+                {
+                    var seconds = int.Parse(resetAfterHeader.Value.TrimEnd('s'));
+                    _rateLimitResetTime = DateTime.Now.AddSeconds(seconds);
+                }
+            }
+        }
+
         public static async Task<byte[]> ConvertTextToAudio(string inputText, string voiceModel)
         {
             var apiUrl = "https://api.openai.com/v1/audio/speech";
@@ -627,6 +1040,17 @@ namespace skill_composer
                 voice = string.IsNullOrEmpty(voiceModel) ? "alloy" : voiceModel
             };
 
+            // Check if we need to respect the rate limit before sending the request
+            if (_rateLimitResetTime.HasValue && DateTime.Now < _rateLimitResetTime)
+            {
+                var delay = (_rateLimitResetTime.Value - DateTime.Now).Milliseconds;
+                if (delay > 0)
+                {
+                    Console.WriteLine($"Rate limit exceeded. Waiting for {delay} ms");
+                    await Task.Delay(delay);
+                }
+            }
+
             try
             {
                 // First, send the request but don't immediately read the response body
@@ -636,8 +1060,8 @@ namespace skill_composer
                     .WithTimeout(600) // Sets the timeout to 6 minutes
                     .PostJsonAsync(requestBody);
 
-                // Log the headers
-                LogResponseHeaders(response.Headers);
+                // Log the headers and check rate limiting
+                CheckAndSetRateLimiting(response);
 
                 // Then, read the response as byte array
                 var responseBytes = await response.GetBytesAsync();
@@ -646,15 +1070,15 @@ namespace skill_composer
             }
             catch (FlurlHttpException ex)
             {
-                System.Console.WriteLine($"Request failed: {ex.Message}");
+                Console.WriteLine($"Request failed: {ex.Message}");
                 if (ex.Call.Response != null)
                 {
                     var errorBody = await ex.GetResponseStringAsync();
-                    System.Console.WriteLine("Error response body: " + errorBody + $" Status Code: {ex.Call.Response.StatusCode}");
+                    Console.WriteLine("Error response body: " + errorBody + $" Status Code: {ex.Call.Response.StatusCode}");
                 }
                 else
                 {
-                    System.Console.WriteLine("Error: No response received");
+                    Console.WriteLine("Error: No response received");
                 }
             }
 

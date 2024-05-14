@@ -11,6 +11,7 @@ namespace skill_composer.Models
     {
         public string OpenAiKey { get; set; }
         public string OpenAiModel { get; set; }
+        public string AssemblyAIApiKey { get; set; }
     }
 
 }

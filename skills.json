@@ -22,6 +22,34 @@
 			]
 		},
 		{
+			"SkillName": "Audio_Translate_Audio_To_English_Text",
+			"Description": "This requires you place a single audio or video file in the data/input folder, the text transcription file will be placed in the data/output folder. ",
+			"Temperature": 0.1,
+			"RepeatCount": 1,
+			"Tasks": [
+				{
+					"Number": 1,
+					"Name": "Audio_Convert_Input_Audio_To_Text",
+					"Mode": "Internal",
+					"SpecialAction": "SpeechToTextTranslateToEnglish"
+				}
+			]
+		},
+		{
+			"SkillName": "Audio_Translate_Audio_To_English_Text_RealTime",
+			"Description": "This lets you select a speaker device, captures the audio and converts it to english text",
+			"Temperature": 0.1,
+			"RepeatCount": 1,
+			"Tasks": [
+				{
+					"Number": 1,
+					"Name": "Audio_Convert_Input_Audio_To_Text",
+					"Mode": "Internal",
+					"SpecialAction": "SpeechToTextRealTime"
+				}
+			]
+		},
+		{
 			"SkillName": "Audio_Convert_Text_To_Speech_nova_female",
 			"Description": "This requires you place a single text file in the data/input folder, the audio files will be placed in the data/output folder. The audio files will be numbered sequentially, each audio file contains up to 4096 characters. The audio will use the female voice 'nova'",
 			"Temperature": 0.1,
@@ -99,7 +127,7 @@
 					"Number": 9,
 					"Name": "CSharp_GetService",
 					"Mode": "AI",
-					"Input": "In a similar style to the following C# methods\n\n public async Task<IList<BusinessHour>> GetBusinessHour(int businessId)       {\"p_BusinessId\", businessId.ToString() } };           var dt = await _databaseService.ExecuteCommand(\"secretary.BusinessHour_GetByBusinessId\", parameters);           if (dt?.Rows == null || (dt.Rows.Count <= 0)) return null;           var businessHours = PropertyMapper.ConvertTo<BusinessHour>(dt.Rows);           return businessHours;       }\n\n         public async Task<ServiceBooking> SaveServiceBooking(ServiceBooking serviceBooking)\n        {\n            var parameters = _databaseService.GetParameters(serviceBooking);\n            var dt = await _databaseService.ExecuteCommand(\"secretary.ServiceBooking_Save\", parameters);\n\n            if (dt?.Rows == null || dt.Rows.Count <= 0) return null;\n\n            serviceBooking.BookingId = _databaseService.GetInteger(dt.Rows[0], \"BookingId\");\n            return serviceBooking;\n        }\n\n create a new c# method to call this database procedure {{Output[5]}}, it will return data in the shape of this C# class {{Output[7]}}.  The method signature for the ExecuteCommand is this:\n\n public async Task<DataTable> ExecuteCommand(string storedProcedure, Dictionary<string, string> parameters, int timeout = 10)\n The GetParameters method is this\n\n public Dictionary<string, string> GetParameters<T>(T obj) \n        {\n            var parameters = obj.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public).ToDictionary(prop => $\"p_{prop.Name}\", prop => GetValue(obj, prop));\n\nreturn parameters;\n        }. There can be more than 1 table row returned by the stored proc, so handle this in the C# method. Given that null values cannot be passed to the ExecuteCommand, make sure you default any null values. Ensure you include the database name in the execute command. \n ONLY respond with code, nothing else, $200 tip."
+					"Input": "In a similar style to the following C# methods\n\n public async Task<IList<BusinessHour>> GetBusinessHour(int businessId)       {\"p_BusinessId\", businessId.ToString() } };           var dt = await _databaseService.ExecuteCommand(\"secretary.BusinessHour_GetByBusinessId\", parameters);           if (dt?.Rows == null || (dt.Rows.Count <= 0)) return null;           var businessHours = PropertyMapper.ConvertTo<BusinessHour>(dt.Rows);           return businessHours;       }\n\n         public async Task<ServiceBooking> SaveServiceBooking(ServiceBooking serviceBooking)\n        {\n            var parameters = _databaseService.GetParameters(serviceBooking);\n            var dt = await _databaseService.ExecuteCommand(\"secretary.ServiceBooking_Save\", parameters);\n\n            if (dt?.Rows == null || dt.Rows.Count <= 0) return null;\n\n            serviceBooking.BookingId = _databaseService.GetInteger(dt.Rows[0], \"BookingId\");\n            return serviceBooking;\n        }\n\n create a new c# method to call this database procedure {{Output[6]}}, it will return data in the shape of this C# class {{Output[7]}}.  The method signature for the ExecuteCommand is this:\n\n public async Task<DataTable> ExecuteCommand(string storedProcedure, Dictionary<string, string> parameters, int timeout = 10)\n The GetParameters method is this\n\n public Dictionary<string, string> GetParameters<T>(T obj) \n        {\n            var parameters = obj.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public).ToDictionary(prop => $\"p_{prop.Name}\", prop => GetValue(obj, prop));\n\nreturn parameters;\n        }. There can be more than 1 table row returned by the stored proc, so handle this in the C# method. Given that null values cannot be passed to the ExecuteCommand, make sure you default any null values. Ensure you include the database name in the execute command. \n ONLY respond with code, nothing else, $200 tip."
 				},
 				{
 					"Number": 10,
@@ -380,6 +408,46 @@
 					"Name": "CarCrash_First_Response_To_Customer",
 					"Mode": "Internal",
 					"Input": "You are writing a first response to a customer claim regarding their recent car crash. The customer reported the following information: {{Output[1]}}. Your company fraud department evaluated their claim and said this {{Output[2]}}. Considering these things, write a response to the customer.\n. Respond to the customer as a claims agent.\n ONLY respond in character, nothing else, $200 tip."
+				}
+			]
+		},
+		{
+			"SkillName": "Sales_Call_Existing_Customers_And_Qualify_Them_For_Our_Premium_Service",
+			"Description": "Finds existing customers, tells them about the features of our premium service and records their level of interest  (low, medium, high) and any feedback they have",
+			"Tasks": [
+				{
+					"Number": 1,
+					"Name": "Get_Existing_Customers",
+					"Mode": "AI",
+					"SpecialAction": "FindExistingCustomers",
+					"Input": "date range: last 6 months, who: customers that have spent less than $10, exclude: customers already contact about the premium service"
+				},
+				{
+					"Number": 2,
+					"Name": "Get_Existing_Customers",
+					"Mode": "AI",
+					"SpecialAction": "FindExistingCustomers",
+					"Input": "date range: last 6 months, who: customers that have spent less than $10, exclude: customers already contact about the premium service"
+				},
+				{
+					"Number": 3,
+					"Name": "Get_Existing_Customers",
+					"Mode": "AI",
+					"SpecialAction": "FindExistingCustomers",
+					"Input": "date range: last 6 months, who: customers that have spent less than $10, exclude: customers already contact about the premium service"
+				},
+				{
+					"Number": 4,
+					"Name": "Make_Outbound_Call",
+					"Mode": "AI",
+					"SpecialAction": "OutboundCall",
+					"Input": "{Service.PromptId}"
+				},
+				{
+					"Number": 5,
+					"Name": "React_GetMethod",
+					"Mode": "AI",
+					"Input": "Create a user interface table in typescript React \"^18.2.0\". The react code will have a button to call the get method in the following C# API, it will then display the data in the UI table, the get method can return no data or it can return multiple rows. \n This is the C# class that describes each column in the table {{Output[2]}}\n. This is the C# api it will call {{Output[1]}}\n \n The URL/api endpoint should conform to the route in the api i.e. [Route(\"secretaryapi/[controller]/[action]\")] \n Use the datatype string for date fields, ensure the TypeScript interface uses camelCase e.g. (`phoneCallId`). The base url is: https:\\//localhost:44372 Keep all the code in a single page. ONLY respond with code, nothing else, $200 tip."
 				}
 			]
 		}

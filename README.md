@@ -1,10 +1,6 @@
 # Skill Composer
 
 Skill Composer is a console application designed to facilitate AI-driven skill generation and debugging for developers. Utilizing OpenAI's API, it allows users to generate skills based on predefined templates and debug them through a simple and interactive console interface.
- 
-
-https://github.com/egokick/ego-skill-composer/assets/580550/062102fc-9628-40d3-a88e-079001576525
-
 
 ## Features
 
@@ -26,7 +22,8 @@ https://github.com/egokick/ego-skill-composer/assets/580550/062102fc-9628-40d3-a
    ```json
    {
      "OpenAiKey": "YOUR_OPENAI_API_KEY",
-     "OpenAiModel": "gpt-4-0125-preview"     
+     "OpenAiModel": "gpt-4-0125-preview",
+     ...
    }
    ```
 
@@ -40,9 +37,9 @@ https://github.com/egokick/ego-skill-composer/assets/580550/062102fc-9628-40d3-a
 
 After running the application, follow the on-screen prompts to either generate new AI skills or debug previous outputs. Select the desired operation by entering the corresponding number:
 
-1. **AI Skill Generation:** Generate a new skill set based on user inputs and AI responses.
-2. **Load/Debug Previous Output:** Load and debug previously saved skill outputs for refinement.
- 
+1. **AI Skill Generation:** Generate a new skill set based on user inputs and AI responses. 
+
+## Special Actions
 **ReadFile**: This action reads the content of a specified file. If no file path is provided in the task.Input, it automatically selects any file from an input folder. If no files are available in the input folder, it halts further processing for this task. The action then reads the content of the file, combines it with the file's title, and assigns this combination as the task's output.
 
 **RenameFile**: This action renames a file based on the task.Input, which provides new labels to be included in the file name. It removes spaces and replaces commas with hyphens in the labels, and then strips non-alphanumeric characters from the new file name, except for hyphens, periods, and spaces. The file is then renamed with this new, cleaned-up label followed by its original name, and moved to its original directory.
@@ -56,3 +53,15 @@ After running the application, follow the on-screen prompts to either generate n
 **ConcatenateFilesByLabel**: This action concatenates the content of files based on provided labels. It first filters out empty or irrelevant labels from the task.Input, then searches for files in the input directory that contain any of the valid labels in their names. The contents of these files are concatenated and saved to a new file in the output directory, named after the label with a ".txt" extension. The path of this new file is then stored in task.FilePath, and a message is printed to indicate the completion of the file creation.
 
  
+
+## Data_Labelling_Text
+5
+.
+ONLY OUTPUT A MAXIMUM OF 4 LABELS, PICK THE MOST IMPORTANT LABELS ONLY.
+.
+
+wem, andes, asia
+The text you are labelling is confluence documentation of software features
+
+
+The text is about software, the 3 regions asia, wem and andes are important.
