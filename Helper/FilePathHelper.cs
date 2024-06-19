@@ -1,13 +1,14 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using skill_composer.Models;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 
 namespace skill_composer.Helper
-{
- 
-    public static class PathHelper
+{ 
+    public static class FilePathHelper
     {
         private static string _skillComposerDirectory;
 
@@ -238,7 +239,7 @@ namespace skill_composer.Helper
         /// <returns></returns>
         public static string GetVariablesFile(string environment, string region, bool isBuild = true)
         {
-            var variablesFile = Path.Combine(PathHelper.GetFeaturesDirectory(isBuild), $"variables.{region}{environment}.json");
+            var variablesFile = Path.Combine(FilePathHelper.GetFeaturesDirectory(isBuild), $"variables.{region}{environment}.json");
             return variablesFile;
         }
 
@@ -252,10 +253,133 @@ namespace skill_composer.Helper
             if (!File.Exists(dependencies)) throw new Exception($"Failed to find dependencies file {dependencies}");
             return dependencies;
         }
+        
+        public static Settings InitializeSettings(Settings? settings)
+        {
+            if (settings == null)
+            {
+                settings = new Settings();
+            }
+            if (settings.OpenAiKey == null)
+            {
+                settings.OpenAiKey = string.Empty;
+            }
+            if (settings.OpenAiModel == null)
+            {
+                settings.OpenAiModel = string.Empty;
+            }
+            if (settings.AssemblyAIApiKey == null)
+            {
+                settings.AssemblyAIApiKey = string.Empty;
+            }
+            if (settings.Databases == null)
+            {
+                settings.Databases = new List<DatabaseSettings>() { new DatabaseSettings() { ConnectionString = "", Name = "" } };
+            }
+            if(settings.OpenaAIVerifierModel == null)
+            {
+                settings.OpenaAIVerifierModel = string.Empty;
+            }
+
+            // Serialize the updated settings back to JSON
+            var updatedSettingsJson = JsonConvert.SerializeObject(settings, Formatting.Indented);
+
+            // Write the JSON back to the settings file
+            File.WriteAllText(FilePathHelper.GetSettingsFile(), updatedSettingsJson);
+
+            return settings;
+        }
+
+        public static void WriteSkillToFile(Skill selectedSkill)
+        {
+            if (!selectedSkill.AppendFileLogging)
+            {
+                // Write output to a new file
+                var filePath = GetNewFilePathForSkill(selectedSkill.SkillName);
+                File.WriteAllText(filePath, JsonConvert.SerializeObject(selectedSkill, Formatting.Indented));
+            }
+            else // Append output to a single file
+            {
+                var filePath = FilePathHelper.GetFilePathForSkill(selectedSkill.SkillName);
+                var newContent = JsonConvert.SerializeObject(selectedSkill, Formatting.Indented);
+
+                if (File.Exists(filePath) && new FileInfo(filePath).Length > 0)
+                {
+                    // Prepare the new content to be appended correctly, without removing any characters from newContent
+                    newContent = "," + Environment.NewLine + newContent; // Add a comma and newline for readability before the new JSON object
+
+                    // Remove the last character of the file (closing square bracket) before appending
+                    using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.ReadWrite))
+                    {
+                        if (stream.Length > 1)
+                        {
+                            stream.SetLength(stream.Length - 1); // Remove the last character (']')
+                        }
+                        using (var writer = new StreamWriter(stream))
+                        {
+                            writer.BaseStream.Seek(0, SeekOrigin.End); // Go to the end of the file
+                            writer.Write(newContent); // Append the new content, keeping the opening curly brace
+                            writer.Write("]"); // Re-add the closing square bracket to properly close the JSON array
+                        }
+                    }
+                }
+                else
+                {
+                    // File doesn't exist or is empty, start a new JSON array
+                    newContent = "[" + newContent + "]";
+                    File.WriteAllText(filePath, newContent);
+                }
+            }
+        }
+
+        // for saving the output of a run
+        private static string GetNewFilePathForSkill(string skillName)
+        {
+            var filePath = Path.Combine(FilePathHelper.GetRootDirectory(), $"{skillName}.json");
+            int k = 0;
+            string baseFilePath = filePath;
+            string directory = Path.GetDirectoryName(filePath);
+            string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(filePath);
+            string extension = Path.GetExtension(filePath);
+            string baseName = fileNameWithoutExtension.Replace(skillName, skillName);
+
+            while (File.Exists(filePath))
+            {
+                k++;
+                filePath = Path.Combine(directory, $"{baseName}{k}{extension}");
+            }
+
+            return filePath;
+        }
+
+        public static List<string> GetSavedOutputFilePaths(SkillSet skillSet)
+        {
+            var savedOutputFiles = new List<string>();
+
+            foreach (var skill in skillSet.Skills)
+            {
+                var filePaths = FilePathHelper.GetSavedFilePathsBySkillName(skill.SkillName);
+                if (filePaths != null && filePaths.Count > 0)
+                {
+                    savedOutputFiles.AddRange(filePaths);
+                }
+            }
+
+            return savedOutputFiles;
+        }
+
+        public static List<string> GetSavedFilePathsBySkillName(string skillName)
+        {
+            var directory = FilePathHelper.GetRootDirectory(); // Assuming this gets your target directory.
+            var searchPattern = $"{skillName}*.json"; // Matches skillName.json, skillName1.json, etc.
+            var filePaths = Directory.GetFiles(directory, searchPattern);
+
+            return filePaths.ToList();
+        }
 
         public static string GetFilePathForSkill(string skillName)
         {
-            var filePath = Path.Combine(PathHelper.GetRootDirectory(), $"{skillName}.json");
+            var filePath = Path.Combine(FilePathHelper.GetRootDirectory(), $"{skillName}.json");
             int k = 0;
             string baseFilePath = filePath;
             string directory = Path.GetDirectoryName(filePath);

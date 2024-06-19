@@ -1,6 +1,169 @@
 {
 	"Skills": [
 		{
+			"SkillName": "__Configure_Settings",
+			"Temperature": 0.1,
+			"RepeatCount": 1,
+			"Tasks": [
+				{
+					"Number": 1,
+					"Name": "Get_OpenAI_API_Key",
+					"Mode": "User",
+					"Input": "Please Input your OpenAI API key - leave empty if already set"
+				},
+				{
+					"Number": 2,
+					"Name": "Get_OpenAI_Model_Name",
+					"Mode": "User",
+					"Input": "Please input the OpenAi model name, e.g. 'gpt-4-turbo-2024-04-09' leave empty if already set"
+				},
+				{
+					"Number": 3,
+					"Name": "Get_Database_Name",
+					"Mode": "User",
+					"Input": "Please input a name for your database, this only for your own reference:"
+				},
+				{
+					"Number": 4,
+					"Name": "Get_Database_ConnectionString",
+					"Mode": "User",
+					"Input": "Please input your database connection string:"
+				},
+				{
+					"Number": 5,
+					"Name": "Get_AssemblyAi_API_Key",
+					"Mode": "User",
+					"Input": "Please input your Assembly AI API Key:"
+				},
+				{
+					"Number": 6,
+					"Name": "ConfigureSettings",
+					"Mode": "Internal",
+					"SpecialAction": "ConfigureSettings",
+					"Input": "OpenAi Api Key: {{Output[1]}}, OpenAiModel: {{Output[2]}}, DatabaseName: {{Output[3]}}, DatabaseConnectionString: {{Output[4]}}, AssemblyAiAPIKey: {{Output[5]}}"
+				}
+			]
+		},
+		{
+			"SkillName": "Text_Ask_Database_Questions",
+			"Temperature": 0.1,
+			"RepeatCount": 1,
+			"Tasks": [
+				{
+					"Number": 1,
+					"Name": "Ask_Database_Question",
+					"Mode": "User",
+					"Input": "Please type any question you have about the database and I will answer it."
+				},
+				{
+					"Number": 2,
+					"Name": "Does_Question_Require_Clarification",
+					"Mode": "AI",
+					"Input": "A business user has asked the following question about the database: {{Output[1]}}./n\n This question will be forwarded to a database admin who will try to answer it. Before it is forwarded to the database admin, please review the business user's question carefully. Is the question well formed and do you believe it contains enough information to be answered by the database admin? Maybe the user requires some help in forming their question. If you believe the question is well formed and contains enough information to be answered by the database admin respond only with 'Continue' NOTHING ELSE. If you believe the question requires further clarification or information, please ask the business user for this."
+				},
+				{
+					"Number": 3,
+					"Name": "Clarifying_User_Question",
+					"Mode": "User",
+					"Input": ":"
+				},
+				{
+					"Number": 4,
+					"Name": "Get_DB_Table_List",
+					"Mode": "AI",
+					"SpecialAction": "RunDatabaseQuery",
+					"Input": "You are a mysql database admin. Write mysql code to list out all of the table names with their respective database names. The mysql code should be well formatted and not contain any bugs as it will be directly executed. ONLY respond with mysql code, nothing else. Exclude default system tables and other default tables."
+				},
+				{
+					"Number": 5,
+					"Name": "Find_Relevant_Tables",
+					"Mode": "AI",
+					"Input": "A business user has asked the following question about the database ORIGINAL QUESTION: {{Output[1]}}/n/nCLARIFICATION: {{Output[2]}}/n/nQUESTION CLARIFICATION  {{Output[3]}}. \n\n The database admin has returned to you a list of all the database tables: {{Output[4]}}. Please respond with a list of the database names and tables that you think are most relevant to the business user question. Respond in JSON only, nothing else."
+				},
+				{
+					"Number": 6,
+					"Name": "Get_Table_Data",
+					"Mode": "AI",
+					"SpecialAction": "RunDatabaseQuery",
+					"Input": "You are a mysql database admin. Write mysql to get 2 tablerows of data from each of the following tables {{Output[5]}}.The mysql code should be well formatted and not contain any bugs as it will be directly executed. ONLY respond with mysql code, nothing else. "
+				},
+				{
+					"Number": 7,
+					"Name": "Connect_To_Database",
+					"Mode": "AI",
+					"Input": "A business user has asked the following question about the database ORIGINAL QUESTION: {{Output[1]}}/n/nCLARIFICATION: {{Output[2]}}/n/nQUESTION CLARIFICATION  {{Output[3]}}. \n\n.The database admin has returned the following data that might be relevant to the business user question: {{Output[6]}}\n\n. Your job is to carefully review the data and respond with an answer to the business user's question. "
+				}
+			]
+		},
+		{
+			"SkillName": "Data_Export_Table_Schema",
+			"Temperature": 0.0,
+			"RepeatCount": 1,
+			"Tasks": [
+				{
+					"Number": 1,
+					"Name": "Get_Database_Schema",
+					"Mode": "AI",
+					"SpecialAction": "RunDatabaseQuery",
+					"Input": "You are a mysql database admin. Write mysql code to list out all of the table names with their respective database names. The mysql code should be well formatted and not contain any bugs as it will be directly executed. ONLY respond with mysql code, nothing else. Exclude default system tables and other default tables."
+				},
+				{
+					"Number": 2,
+					"Name": "Get_Table_Definition_Query",
+					"Mode": "AI",
+					"SpecialAction": "RunDatabaseQuery",
+					"Input": "You are a mysql database admin. You have access to a database with the following tables: {{Output[1]}}. Write mysql statements 'SHOW CREATE TABLE {databasename}.{tablename};' for each table. ONLY respond with mysql code, nothing else."
+				},
+				{
+					"Number": 3,
+					"Name": "Format_Create_Table_SQL",
+					"Mode": "AI",
+					"Input": "Extract only the mysql table create statements from this text: {{Output[2]}}. ONLY respond with mysql code, nothing else. Your output will be directly executed to create the tables, so it must be valid SQL."
+				},
+				{
+					"Number": 4,
+					"Name": "Write_Mysql_Create_Table_To_Files",
+					"Mode": "AI",
+					"SpecialAction": "WriteOutputToFiles",
+					"Input": "Insert the following special text\n--NEWFILE--\n Between each table create statement. At the start of each file append another special line that will be the tablename followed by .sql e.g. if the table is 'Customers', the first line in the file should be Customers.sql\n\nDo not add extra comments. Respond with the FULL and COMPLETE INPUT TEXT.\n\n INPUT TEXT: {{Output[3]}}"
+				}
+			]
+		},
+		{
+			"SkillName": "Data_Export_Procedure_Schema",
+			"Temperature": 0.0,
+			"RepeatCount": 1,
+			"Tasks": [
+				{
+					"Number": 1,
+					"Name": "Get_Database_Schema",
+					"Mode": "AI",
+					"SpecialAction": "RunDatabaseQuery",
+					"Input": "You are a mysql database admin. Write mysql code to list out all of the stored procedure names with their respective database names. The mysql code should be well formatted and not contain any bugs as it will be directly executed. ONLY respond with mysql code, nothing else. Exclude default stored procedures."
+				},
+				{
+					"Number": 2,
+					"Name": "Get_Procedure_Definition_Query",
+					"Mode": "AI",
+					"SpecialAction": "RunDatabaseQuery",
+					"Input": "You are a mysql database admin. You have access to a database with the following stored procedures: {{Output[1]}}. Write mysql statements 'SELECT ROUTINE_DEFINITION, ROUTINE_NAME FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_SCHEMA' etc for each stored procedure to show the ROUTINE_DEFINITION. ONLY respond with mysql code, nothing else."
+				},
+				{
+					"Number": 3,
+					"Name": "Format_Create_Procedure_SQL",
+					"Mode": "AI",
+					"Input": "Look at the following mysql output: {{Output[2]}}. Return mysql create procedure statements for each procedure. ONLY respond with mysql code, nothing else. Your output will be directly executed to create the procedures, so it must be valid SQL."
+				},
+				{
+					"Number": 4,
+					"Name": "Write_Mysql_Create_Table_To_Files",
+					"Mode": "AI",
+					"SpecialAction": "WriteOutputToFiles",
+					"Input": "Insert the following special text\n--NEWFILE--\n Between each procedure create statement. At the start of each file append another special line that will be the stored procedure name followed by .sql e.g. if the procedure name is 'Address_Delete', the first line in the file should be Address_Delete.sql\n\nDo not add extra comments. Respond with the FULL and COMPLETE INPUT TEXT.\n\n INPUT TEXT: {{Output[3]}}"
+				}
+			]
+		},
+		{
 			"SkillName": "Audio_Convert_Text_To_Speech_onyx_male",
 			"Description": "This requires you place a single text file in the data/input folder, the audio files will be placed in the data/output folder. The audio files will be numbered sequentially, each audio file contains up to 4096 characters. The audio will use the male voice 'onyx'",
 			"Temperature": 0.1,
@@ -37,7 +200,7 @@
 		},
 		{
 			"SkillName": "Audio_Translate_Audio_To_English_Text_RealTime",
-			"Description": "This lets you select a speaker device, captures the audio and converts it to english text",
+			"Description": "WIP - This lets you select a speaker device, captures the audio and converts it to english text",
 			"Temperature": 0.1,
 			"RepeatCount": 1,
 			"Tasks": [
