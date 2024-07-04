@@ -52,7 +52,9 @@ After running the application, follow the on-screen prompts to either generate n
 
 **ConcatenateFilesByLabel**: This action concatenates the content of files based on provided labels. It first filters out empty or irrelevant labels from the task.Input, then searches for files in the input directory that contain any of the valid labels in their names. The contents of these files are concatenated and saved to a new file in the output directory, named after the label with a ".txt" extension. The path of this new file is then stored in task.FilePath, and a message is printed to indicate the completion of the file creation.
 
- 
+## Available Models
+Available values : gpt-35-turbo-0613, gpt-35-turbo-16k-0613, gpt-4-0613, gpt-4-32k-0613
+
 
 ## Data_Labelling_Text
 5

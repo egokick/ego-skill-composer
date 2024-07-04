@@ -50,7 +50,6 @@ namespace skill_composer.Helper
         public static string MoveFileToOutputDirectory(string fullFilePath)
         {
             var fileName = Path.GetFileName(fullFilePath);
-
             var outputDirectory = GetDataOutputDirectory();
 
             if (!Directory.Exists(outputDirectory))
@@ -61,11 +60,24 @@ namespace skill_composer.Helper
             // Combine the output directory path and the sanitized file name
             var outputFilePath = Path.Combine(outputDirectory, fileName);
 
+            // Check if file with same name exists and rename if necessary
+            int fileNumber = 1;
+            string fileExtension = Path.GetExtension(fileName);
+            string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(fileName);
+
+            while (File.Exists(outputFilePath))
+            {
+                string newFileName = $"{fileNameWithoutExtension} ({fileNumber}){fileExtension}";
+                outputFilePath = Path.Combine(outputDirectory, newFileName);
+                fileNumber++;
+            }
+
             // Move the file
             File.Move(fullFilePath, outputFilePath);
 
             return outputFilePath;
         }
+
 
         public static string GetDataOutputDirectory()
         {
@@ -271,16 +283,12 @@ namespace skill_composer.Helper
             if (settings.AssemblyAIApiKey == null)
             {
                 settings.AssemblyAIApiKey = string.Empty;
-            }
+            } 
             if (settings.Databases == null)
             {
                 settings.Databases = new List<DatabaseSettings>() { new DatabaseSettings() { ConnectionString = "", Name = "" } };
             }
-            if(settings.OpenaAIVerifierModel == null)
-            {
-                settings.OpenaAIVerifierModel = string.Empty;
-            }
-
+           
             // Serialize the updated settings back to JSON
             var updatedSettingsJson = JsonConvert.SerializeObject(settings, Formatting.Indented);
 

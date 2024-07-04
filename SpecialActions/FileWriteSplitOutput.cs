@@ -3,7 +3,7 @@ using skill_composer.Helper;
 
 namespace skill_composer.SpecialActions
 {
-    public class WriteOutputToFiles : ISpecialAction
+    public class FileWriteSplitOutput : ISpecialAction
     {
         public async Task<Models.Task> ExecuteAsync(Models.Task task, Skill selectedSkill, Settings settings)
         {
@@ -22,10 +22,10 @@ namespace skill_composer.SpecialActions
                     continue;
 
                 var fileName = lines[1].Trim(); // The first line is the file name.
-                if (!fileName.Contains("sql"))
-                {
-                    fileName += ".sql";
-                }
+
+                
+                    fileName = $"{selectedSkill.RepeatCount}.txt";
+ 
 
                 var fileData = string.Join(Environment.NewLine, lines.Skip(2)); // The rest is the file data.
 

@@ -3,7 +3,7 @@ using skill_composer.Helper;
 
 namespace skill_composer.SpecialActions
 {
-    public class MoveOutputFilesToInputFolder : ISpecialAction
+    public class FilesMoveToInputFolder : ISpecialAction
     {        
         public async Task<Models.Task> ExecuteAsync(Models.Task task, Skill selectedSkill, Settings settings)
         {

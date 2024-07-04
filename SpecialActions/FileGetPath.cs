@@ -3,7 +3,8 @@ using skill_composer.Helper;
 
 namespace skill_composer.SpecialActions
 {
-    public class ReadFile : ISpecialAction
+
+    public class FileGetPath : ISpecialAction
     { 
         public async Task<Models.Task> ExecuteAsync(Models.Task task, Skill selectedSkill, Settings settings)
         {
@@ -27,7 +28,7 @@ namespace skill_composer.SpecialActions
             var fileName = Path.GetFileName(task.FilePath);
             var fileContent = File.ReadAllText(task.FilePath);
 
-            task.Output = $"Title: {fileName} {fileContent}";
+            task.Output = $"Title: {fileName}";
             
             return task;
         }

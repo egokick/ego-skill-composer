@@ -124,7 +124,7 @@
 					"Number": 4,
 					"Name": "Write_Mysql_Create_Table_To_Files",
 					"Mode": "AI",
-					"SpecialAction": "WriteOutputToFiles",
+					"SpecialAction": "FileWriteSplitOutput",
 					"Input": "Insert the following special text\n--NEWFILE--\n Between each table create statement. At the start of each file append another special line that will be the tablename followed by .sql e.g. if the table is 'Customers', the first line in the file should be Customers.sql\n\nDo not add extra comments. Respond with the FULL and COMPLETE INPUT TEXT.\n\n INPUT TEXT: {{Output[3]}}"
 				}
 			]
@@ -158,7 +158,7 @@
 					"Number": 4,
 					"Name": "Write_Mysql_Create_Table_To_Files",
 					"Mode": "AI",
-					"SpecialAction": "WriteOutputToFiles",
+					"SpecialAction": "FileWriteSplitOutput",
 					"Input": "Insert the following special text\n--NEWFILE--\n Between each procedure create statement. At the start of each file append another special line that will be the stored procedure name followed by .sql e.g. if the procedure name is 'Address_Delete', the first line in the file should be Address_Delete.sql\n\nDo not add extra comments. Respond with the FULL and COMPLETE INPUT TEXT.\n\n INPUT TEXT: {{Output[3]}}"
 				}
 			]
@@ -173,7 +173,7 @@
 					"Number": 1,
 					"Name": "Set_Input_FilePath_And_Output_File_Content",
 					"Mode": "Internal",
-					"SpecialAction": "ReadFile"
+					"SpecialAction": "FileRead"
 				},
 				{
 					"Number": 2,
@@ -222,7 +222,7 @@
 					"Number": 1,
 					"Name": "Set_Input_FilePath_And_Output_File_Content",
 					"Mode": "Internal",
-					"SpecialAction": "ReadFile"
+					"SpecialAction": "FileRead"
 				},
 				{
 					"Number": 2,
@@ -473,7 +473,7 @@
 					"Number": 4,
 					"Name": "Set_Input_FilePath_And_Output_File_Content",
 					"Mode": "Internal",
-					"SpecialAction": "ReadFile"
+					"SpecialAction": "FileRead"
 				},
 				{
 					"Number": 5,
@@ -493,7 +493,7 @@
 					"Number": 7,
 					"Name": "Data_AILabel",
 					"Mode": "Internal",
-					"SpecialAction": "MoveFileToOutput",
+					"SpecialAction": "FileMoveToOutput",
 					"Input": "{{FilePath[6]}}"
 				}
 			]
@@ -512,6 +512,208 @@
 			]
 		},
 		{
+			"SkillName": "DataInput_BOOK_TRANSLATION_to_audio!!!!!!!!!!!!!!!!!",
+			"Description": "Runs the following skills: ",
+			"OpenAiModel": "gpt-4o",
+			"Temperature": 0.5,
+			"RepeatCount": 1,
+			"Tasks": [
+				{
+					"Number": 1,
+					"Name": "Runs skill: DataInput_BOOK_TRANSLATION_Convert_Images_To_Text",
+					"Input": "DataInput_BOOK_TRANSLATION_Convert_Images_To_Text",
+					"Mode": "Internal",
+					"SpecialAction": "RunSkill"
+				},
+				{
+					"Number": 2,
+					"Name": "Waits for 2 seconds and then resumes processing.",
+					"Input": "2",
+					"Mode": "Internal",
+					"SpecialAction": "DelayInSeconds"
+				},
+				{
+					"Number": 3,
+					"Name": "Runs skill: DataInput_BOOK_TRANSLATION_Convert_Text_To_Audio",
+					"Input": "DataInput_BOOK_TRANSLATION_Convert_Text_To_Audio",
+					"Mode": "Internal",
+					"SpecialAction": "RunSkill"
+				}
+			]
+		},
+		{
+			"SkillName": "DataInput_BOOK_TRANSLATION_Convert_Images_To_Text_WithImage_Rotation",
+			"Description": "This converts images of a book into text and translates the image text to english. This expects images in JPEG or (HEIC) format, rotates the images to be the correct orientation, names the output text files with the corresponding page number of the book or the original filename.txt if no page number is found in the image.",
+			"OpenAiModel": "gpt-4o",
+			"Temperature": 0.5,
+			"RepeatCount": 99999,
+			"Tasks": [
+				{
+					"Number": 1,
+					"Name": "Get_Image_File",
+					"Mode": "Internal",
+					"SpecialAction": "FileGetPath"
+				},
+				{
+					"Number": 2,
+					"Name": "Convert_HEIC_to_PNG_Image",
+					"FilePath": "{{FilePath[1]}}",
+					"Mode": "Internal",
+					"SpecialAction": "FileConvertHeicToJpg"
+				},
+				{
+					"Number": 3,
+					"Name": "Check_Image_Orientation",
+					"Input": "You are looking at an image of text in a book, respond with 'true' if the text is in an okay and readable rotation. If the text is sideways and would need to be rotated to be read, explain why (in some detail that references the text) and then end your response with 'rotate'.",
+					"FilePath": "{{FilePath[2]}}",
+					"Mode": "AI",
+					"SpecialAction": "ImageRotate"
+				},
+				{
+					"Number": 4,
+					"Name": "Check_Image_Orientation",
+					"Input": "You are looking at an image of text in a book, respond with 'true' if the text is in an okay and readable rotation. If the text is sideways and would need to be rotated to be read, explain why (in some detail that references the text) and then end your response with 'rotate'.",
+					"FilePath": "{{FilePath[2]}}",
+					"Mode": "AI",
+					"SpecialAction": "ImageRotate"
+				},
+				{
+					"Number": 5,
+					"Name": "Check_Image_Orientation",
+					"Input": "You are looking at an image of text in a book, respond with 'true' if the text is in an okay and readable rotation. If the text is sideways and would need to be rotated to be read, explain why (in some detail that references the text) and then end your response with 'rotate'.",
+					"FilePath": "{{FilePath[2]}}",
+					"Mode": "AI",
+					"SpecialAction": "ImageRotate"
+				},
+				{
+					"Number": 6,
+					"Name": "Convert_Image_To_Text",
+					"Input": "You are transcribing a book. Write out all the text in the image. If you see a page number in the book, start the translated text with:--pagenumber.txt--\n\n for example if the page number is 115, make the first line of the translated text:--115.txt--\n\nIf you don't see a page number then use the file name and replace the extension with .txt, the filename is {{FilePath[2]}}. Return only the text in the image and nothing else.",
+					"FilePath": "{{FilePath[2]}}",
+					"Mode": "AI"
+				},
+				{
+					"Number": 7,
+					"Name": "Translate_Text_To_English",
+					"Input": "Translate the following text to English (include all following content):\n\n{{Output[6]}}",
+					"Mode": "AI",
+					"SpecialAction": "FileWriteOutput"
+				},
+				{
+					"Number": 8,
+					"Name": "Move_File_To_Output",
+					"FilePath": "{{FilePath[1]}}",
+					"Mode": "Internal",
+					"SpecialAction": "FileMoveToOutput"
+				}
+			]
+		},
+		{
+			"SkillName": "DataInput_BOOK_TRANSLATION_Convert_Images_To_Text",
+			"Description": "This converts images of a book into text and translates the image text to english. This expects images in JPEG or (HEIC) format, it expects the images to be in correct orientation, names the output text files with the corresponding page number of the book or the original filename.txt if no page number is found in the image.",
+			"OpenAiModel": "gpt-4o",
+			"Temperature": 0.5,
+			"RepeatCount": 99999,
+			"Tasks": [
+				{
+					"Number": 1,
+					"Name": "Get_Image_File",
+					"Mode": "Internal",
+					"SpecialAction": "FileGetPath"
+				},
+				{
+					"Number": 2,
+					"Name": "Convert_HEIC_to_PNG_Image",
+					"FilePath": "{{FilePath[1]}}",
+					"Mode": "Internal",
+					"SpecialAction": "FileConvertHeicToJpg"
+				},
+				{
+					"Number": 3,
+					"Name": "placeholder",
+					"Input": "....",
+					"Mode": "Internal"
+				},
+				{
+					"Number": 4,
+					"Name": "Check_Image_Orientation",
+					"Name": "placeholder",
+					"Input": "....",
+					"Mode": "Internal"
+				},
+				{
+					"Number": 5,
+					"Name": "Check_Image_Orientation",
+					"Name": "placeholder",
+					"Input": "....",
+					"Mode": "Internal"
+				},
+				{
+					"Number": 6,
+					"Name": "Convert_Image_To_Text",
+					"Input": "You are transcribing a book. Write out all the text in the image. If you see a page number in the book, start the translated text with:--pagenumber.txt--\n\n for example if the page number is 115, make the first line of the translated text:--115.txt--\n\nIf you don't see a page number then use the file name and replace the extension with .txt, the filename is {{FilePath[2]}}. Return only the text in the image and nothing else.",
+					"FilePath": "{{FilePath[2]}}",
+					"Mode": "AI"
+				},
+				{
+					"Number": 7,
+					"Name": "Translate_Text_To_English",
+					"Input": "Translate the following text to English (include all following content):\n\n{{Output[6]}}",
+					"Mode": "AI",
+					"SpecialAction": "FileWriteOutput"
+				},
+				{
+					"Number": 8,
+					"Name": "Move_File_To_Output",
+					"FilePath": "{{FilePath[1]}}",
+					"Mode": "Internal",
+					"SpecialAction": "FileMoveToOutput"
+				}
+			]
+		},
+		{
+			"SkillName": "DataInput_BOOK_TRANSLATION_Convert_Text_To_Audio",
+			"Description": "This expects to be executed immediately after the skill DataInput_BOOK_TRANSLATION_Convert_Images_To_Text has completed. It first gets all the text files from the data/output folder and moves them into the data/input folder. Then it concatenates the text files. Then it creates audio files of the text files in the data/output folder.",
+			"OpenAiModel": "gpt-4o",
+			"Temperature": 0.5,
+			"RepeatCount": 1,
+			"Tasks": [
+				{
+					"Number": 1,
+					"Name": "Get_all_text_files_from_the_output_folder",
+					"Input": "txt",
+					"Mode": "Internal",
+					"SpecialAction": "FilesMoveToInputFolderByFileType"
+				},
+				{
+					"Number": 2,
+					"Name": "Concatenate_all_text_files_in_the_input_folder_in_ascending_order",
+					"Mode": "Internal",
+					"SpecialAction": "ConcatenateAllInputFiles"
+				},
+				{
+					"Number": 3,
+					"Name": "Move_files_to_output_folder",
+					"Mode": "Internal",
+					"SpecialAction": "FilesMoveToOutputFolder"
+				},
+				{
+					"Number": 4,
+					"Name": "Get_The_Combined_Text_File_Set_Input_FilePath_And_Output_File_Content",
+					"FilePath": "{{FilePath[2]}}",
+					"Mode": "Internal",
+					"SpecialAction": "FileRead"
+				},
+				{
+					"Number": 5,
+					"Name": "Audio_Convert_Input_Text_To_Speech",
+					"Mode": "Internal",
+					"Input": "{{Output[4]}}",
+					"SpecialAction": "TextToSpeechonyx"
+				}
+			]
+		},
+		{
 			"SkillName": "DataOutput_MoveFilesToInput",
 			"OpenAiModel": "gpt-4-0125-preview",
 			"DisableFileLogging": true,
@@ -523,7 +725,7 @@
 					"Number": 1,
 					"Name": "Data_MoveOutputFilesToInputFolder",
 					"Mode": "Internal",
-					"SpecialAction": "MoveOutputFilesToInputFolder"
+					"SpecialAction": "FilesMoveToInputFolder"
 				}
 			]
 		},
