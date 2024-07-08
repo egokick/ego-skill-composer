@@ -512,6 +512,154 @@
 			]
 		},
 		{
+			"SkillName": "Email_Demo_Download_And_Evaluate",
+			"Description": "Demo of downloading email, reading them, checking if they contain a monetary value, writing that out in a standard format.",
+			"OpenAiModel": "gpt-4o",
+			"Temperature": 0.5,
+			"RepeatCount": 1,
+			"Tasks": [
+				{
+					"Number": 1,
+					"Name": "Downloads Emails From The Pending folder",
+					"Input": "Pending->Processed",
+					"Mode": "Internal",
+					"SpecialAction": "EmailDownloadFromFolder"
+				},
+				{
+					"Number": 2,
+					"Name": "Waits for 2 seconds and then resumes processing.",
+					"Input": "10",
+					"Mode": "Internal",
+					"SpecialAction": "DelayInSeconds"
+				}
+			]
+		},
+		{
+			"SkillName": "QR_Code_Email_Demo",
+			"Description": "Create QR code and email",
+			"OpenAiModel": "gpt-4o",
+			"Temperature": 0.5,
+			"RepeatCount": 1,
+			"Tasks": [
+				{
+					"Number": 1,
+					"Name": "Get email to address",
+					"Input": "Enter the email address you want to mail:",
+					"Mode": "User"
+				},
+				{
+					"Number": 2,
+					"Name": "Get email subject",
+					"Input": "Enter the email subject line:",
+					"Mode": "User"
+				},
+				{
+					"Number": 3,
+					"Name": "Get email body content",
+					"Input": "Enter the body content of the email",
+					"Mode": "User"
+				},
+				{
+					"Number": 4,
+					"Name": "Format QR code mailto",
+					"Input": "mailto:{{Output[1]}?subject={{Output[2]}}&body={{Output[3]}}",
+					"Mode": "Internal",
+					"SpecialAction": "CopyInputToOutput"
+				},
+				{
+					"Number": 5,
+					"Name": "Create the QR code from the previous input. Saves the QR code as a PNG and sets the FilePath.",
+					"Input": "{{Output[4]}}",
+					"Mode": "Internal",
+					"SpecialAction": "QRCodeCreate"
+				},
+				{
+					"Number": 6,
+					"Name": "Email the QR code",
+					"Input": "tomcadesign@gmail.com\n{{Output[6]}}",
+					"FilePath": "{{FilePath[5]}}",
+					"Mode": "Internal",
+					"SpecialAction": "EmailSend"
+				}
+			]
+		},
+		{
+			"SkillName": "Email_Demo_Download_Evaluate_And_Send_Email",
+			"Description": "Demo of downloading email, reading them, checking if they contain a monetary value, writing that out in a standard format.",
+			"OpenAiModel": "gpt-4o",
+			"Temperature": 0.5,
+			"RepeatCount": 5,
+			"Tasks": [
+				{
+					"Number": 1,
+					"Name": "Download an Email From The Pending folder",
+					"Input": "Pending->Processed",
+					"Mode": "Internal",
+					"SpecialAction": "EmailDownloadFromFolder"
+				},
+				{
+					"Number": 2,
+					"Name": "Get the email content, does this email contain money?",
+					"Input": "{{FilePath[1]}}",
+					"Mode": "Internal",
+					"SpecialAction": "FileRead"
+				},
+				{
+					"Number": 3,
+					"Name": "Does this email content contain money?",
+					"Input": "If the content of this email has monetary amounts, simply output the text: 'true'. else output the text 'false'. Nothing else. Email content: {{Output[2]}}",
+					"Mode": "AI"
+				},
+				{
+					"Number": 4,
+					"Name": "Does this email content discuss politics?",
+					"Input": "If the content of this email has content talking about politics, simply output the text: 'true'. Else output the text 'false'. Nothing else. Email content: {{Output[2]}}",
+					"Mode": "AI"
+				},
+				{
+					"Number": 5,
+					"Name": "What is the language of this email?",
+					"Input": "What is the language of the email written in? i.e. English, Chinese, Spanish? ONLY output the language as a response, Nothing else. Email content: {{Output[2]}}",
+					"Mode": "AI"
+				},
+				{
+					"Number": 6,
+					"Name": "What is this email about?",
+					"Input": "Generate a really short Label explaining what this email is about, 3 words MAXIMUM, in ENGLISH ONLY, Nothing else. Do not use any punctuation, periods or full stops. Email content: {{Output[2]}}",
+					"Mode": "AI"
+				},
+				{
+					"Number": 7,
+					"Name": "Format email evaluation output and write to file.",
+					"Input": "--{{Output[6]}}.txt--\nTopic: {{Output[6]}}\nContains Money: {{Output[3]}}\nPolitical: {{Output[4]}}\nLanguange: {{Output[5]}}",
+					"Mode": "Internal",
+					"SpecialAction": "FileWriteInput"
+				},
+				{
+					"Number": 8,
+					"Name": "Send email with evaluated output",
+					"Input": "tomcadesign@gmail.com\n{{Output[6]}}",
+					"FilePath": "{{FilePath[7]}}",
+					"Mode": "Internal",
+					"SpecialAction": "EmailSend"
+				},
+				{
+					"Number": 9,
+					"Name": "Move_Downloaded_Email_To_Output_Folder",
+					"FilePath": "{{FilePath[1]}}",
+					"Mode": "Internal",
+					"SpecialAction": "FileMoveToOutput"
+				},
+				{
+					"Number": 10,
+					"Name": "Example of polling, waits for 10 seconds and then gets the next email.",
+					"Input": "10",
+					"Mode": "Internal",
+					"SpecialAction": "DelayInSeconds"
+				}
+			]
+		},
+		{
 			"SkillName": "DataInput_BOOK_TRANSLATION_to_audio!!!!!!!!!!!!!!!!!",
 			"Description": "Runs the following skills: ",
 			"OpenAiModel": "gpt-4o",

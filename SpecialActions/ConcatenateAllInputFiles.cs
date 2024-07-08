@@ -1,12 +1,14 @@
 ﻿using skill_composer.Models;
 using skill_composer.Helper;
-using System;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace skill_composer.SpecialActions
 {
+    /// <summary>
+    /// Concatenates the contents of all files in the input data directory
+    /// and writes the combined content to a single output file.
+    /// The result file path is set in the task's FilePath field.
+    /// </summary>
+
     public class ConcatenateAllInputFiles : ISpecialAction
     {
         public async Task<Models.Task> ExecuteAsync(Models.Task task, Skill selectedSkill, Settings settings)

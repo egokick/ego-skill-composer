@@ -10,11 +10,14 @@
 	<ItemGroup> 
 	  <Compile Remove="data\**" /> 
 	  <Compile Remove="packages\**" /> 
+	  <Compile Remove="test\**" /> 
 	  <EmbeddedResource Remove="data\**" /> 
 	  <EmbeddedResource Remove="packages\**" /> 
+	  <EmbeddedResource Remove="test\**" /> 
 	  <None Remove="*.json" /> 
 	  <None Remove="data\**" /> 
-	  <None Remove="packages\**" />
+	  <None Remove="packages\**" /> 
+	  <None Remove="test\**" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -23,13 +26,17 @@
  
 
 	<ItemGroup>
+		<PackageReference Include="Azure.Identity" Version="1.12.0" />
 		<PackageReference Include="Flurl.Http" Version="4.0.2" />
 		<PackageReference Include="Magick.NET-Q16-AnyCPU" Version="13.9.1" />
 		<PackageReference Include="MathNet.Numerics" Version="5.0.0" />
+		<PackageReference Include="Microsoft.Graph" Version="5.56.0" />
+		<PackageReference Include="Microsoft.Identity.Client" Version="4.61.3" />
 		<PackageReference Include="MySql.Data" Version="8.4.0" />
 		<PackageReference Include="NAudio" Version="2.2.1" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<PackageReference Include="Polly" Version="8.3.0" />
+		<PackageReference Include="QRCoder" Version="1.6.0" />
 		<PackageReference Include="System.Drawing.Common" Version="8.0.6" />
 	</ItemGroup>
 

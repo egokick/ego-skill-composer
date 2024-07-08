@@ -42,6 +42,11 @@ namespace skill_composer.Helper
             }
         }
 
+        public static ConcurrentDictionary<string, ISpecialAction> GetActions() 
+        {
+            return _actions;
+        }
+
         public static ISpecialAction GetAction(string actionName)
         {
             if (actionName.Contains("TextToSpeech")) actionName = "TextToSpeech";

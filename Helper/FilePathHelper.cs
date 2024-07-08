@@ -284,6 +284,14 @@ namespace skill_composer.Helper
             {
                 settings.AssemblyAIApiKey = string.Empty;
             } 
+            if(settings.AzureClientId == null)
+            {
+                settings.AzureClientId = string.Empty;
+            }
+            if(settings.AzureTenantId == null)
+            {
+                settings.AzureTenantId = string.Empty;
+            }
             if (settings.Databases == null)
             {
                 settings.Databases = new List<DatabaseSettings>() { new DatabaseSettings() { ConnectionString = "", Name = "" } };

@@ -1,0 +1,4 @@
+INFO DatabaseService.ExecuteCommand CommandText: SELECT ROUTINE_SCHEMA AS DatabaseName, ROUTINE_NAME AS ProcedureName
+FROM INFORMATION_SCHEMA.ROUTINES
+WHERE ROUTINE_TYPE = 'PROCEDURE'
+AND ROUTINE_SCHEMA NOT IN ('mysql', 'information_schema', 'performance_schema', 'sys');, total execution time: 2.6255616

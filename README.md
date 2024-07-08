@@ -22,7 +22,7 @@ Skill Composer is a console application designed to facilitate AI-driven skill g
    ```json
    {
      "OpenAiKey": "YOUR_OPENAI_API_KEY",
-     "OpenAiModel": "gpt-4-0125-preview",
+     "OpenAiModel": "gpt-4o",
      ...
    }
    ```
@@ -54,16 +54,10 @@ After running the application, follow the on-screen prompts to either generate n
 
 ## Available Models
 Available values : gpt-35-turbo-0613, gpt-35-turbo-16k-0613, gpt-4-0613, gpt-4-32k-0613
+ 
 
+## How to use
 
-## Data_Labelling_Text
-5
-.
-ONLY OUTPUT A MAXIMUM OF 4 LABELS, PICK THE MOST IMPORTANT LABELS ONLY.
-.
+When creating skills in the skills.json file, follow this convention:
+-- The task.Output field is intended to be set by the AI or SpecialActions, so avoid directly writing in the Output field in the task (this is merely for consistency and simplicity). However, you can reference the output of previous tasks with this syntax {{Output[1]}} (this is the intended way to use the Output field)..
 
-wem, andes, asia
-The text you are labelling is confluence documentation of software features
-
-
-The text is about software, the 3 regions asia, wem and andes are important.

@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 
 namespace skill_composer.SpecialActions
 {
-    public class FileWriteOutput : ISpecialAction
+    public class FileWriteInput : ISpecialAction
     {
         public async Task<Models.Task> ExecuteAsync(Models.Task task, Skill selectedSkill, Settings settings)
         {
@@ -12,7 +12,7 @@ namespace skill_composer.SpecialActions
 
             var fileName = $"{selectedSkill.RepeatCount}.txt";
 
-            var lines = task.Output.Split("\n");
+            var lines = task.Input.Split("\n");
 
             if (lines.FirstOrDefault() is not null && lines.First().Count(c => c == '-') == 4)
             {
@@ -22,9 +22,11 @@ namespace skill_composer.SpecialActions
 
             var outputFilePath = Path.Combine(outputDirectory, fileName);
 
-            File.WriteAllText(outputFilePath, task.Output);
-
+            File.WriteAllText(outputFilePath, task.Input);
+            
+            task.Output = outputFilePath;
             task.FilePath = outputFilePath;
+
             return task;
         }
     }

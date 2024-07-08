@@ -3,6 +3,12 @@ using skill_composer.Helper;
 
 namespace skill_composer.SpecialActions
 {
+    /// <summary>
+    /// Reads the content of a specified file and sets the content as the task's output.
+    /// If no file path is provided, it will use a file from the input folder.
+    /// The file content is prefixed with the file name in the output.
+    /// </summary>
+
     public class FileRead : ISpecialAction
     { 
         public async Task<Models.Task> ExecuteAsync(Models.Task task, Skill selectedSkill, Settings settings)

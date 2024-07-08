@@ -61,7 +61,11 @@ namespace skill_composer
                     }
                     catch (Exception ex) 
                     {
-                        Console.WriteLine($"Exception: {ex.Message}");
+                        task.Output += ex.Message;
+                        var defaultColor = Console.ForegroundColor; 
+                        Console.ForegroundColor = ConsoleColor.Red; 
+                        Console.WriteLine($"Exception: {ex.Message}"); 
+                        Console.ForegroundColor = defaultColor;
                     }
 
                     if (task.HaltProcessing)
@@ -85,14 +89,15 @@ namespace skill_composer
             task = ReplaceInput(task, selectedSkill);
 
             // If there is a UserPrompt and the user has not already responded i.e. in the second iteration, we already have the user answers from the first iteration
-            if (task.Mode == "User" && !string.IsNullOrEmpty(task.Input) && string.IsNullOrEmpty(task.Output))
+            if (task.Mode.ToLower() == "user" && !string.IsNullOrEmpty(task.Input) && string.IsNullOrEmpty(task.Output))
             {
                 Console.WriteLine(task.Input);
 
-                task.Output = ReadInputAsync().Result;
+                task.Output = Console.ReadLine(); // ReadInputAsync().Result;
+                task.Output = task.Output.TrimEnd();
             }
 
-            if (task.Mode == "AI")
+            if (task.Mode.ToLower() == "ai")
             {                
                 task.Output = await api.GetAIResponse(userInput: task.Input, filePath: task.FilePath, skill : selectedSkill);                
             }
@@ -124,7 +129,7 @@ namespace skill_composer
                     var correspondingTask = skill.Tasks?.FirstOrDefault(st => st.Number == t.Number);
 
                     // Determine the Input based on the Mode
-                    string output = (t.Mode == "User" && correspondingTask != null) ? correspondingTask.Output : t.Output;
+                    string output = (t.Mode.ToLower() == "user" && correspondingTask != null) ? correspondingTask.Output : t.Output;
 
                     return new Models.Task
                     {
