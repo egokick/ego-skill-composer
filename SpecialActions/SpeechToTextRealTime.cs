@@ -14,7 +14,7 @@ namespace skill_composer.SpecialActions
 {
     public class SpeechToTextRealTime : ISpecialAction
     {
-        public async Task<Models.Task> ExecuteAsync(Models.Task task, Skill selectedSkill, Settings settings)
+        public async Task<Models.Task> Execute(Models.Task task, Skill selectedSkill, Settings settings)
         {
             var aiToken = GetAssemblyAiWebsocketTemporaryToken(settings, 360000).Result;
             var assemblyAiWebSocket = new ClientWebSocket();

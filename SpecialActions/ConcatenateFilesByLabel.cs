@@ -5,7 +5,7 @@ namespace skill_composer.SpecialActions
 {
     public class ConcatenateFilesByLabel : ISpecialAction
     {
-        public async Task<Models.Task> ExecuteAsync(Models.Task task, Skill selectedSkill, Settings settings)
+        public async Task<Models.Task> Execute(Models.Task task, Skill selectedSkill, Settings settings)
         {
             var labels = task.Input.Split(',').ToList();
             labels.RemoveAll(label => string.IsNullOrEmpty(label) || label == ".");

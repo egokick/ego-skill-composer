@@ -22,7 +22,7 @@ namespace skill_composer.SpecialActions
     { 
         private static DateTime? _rateLimitResetTime = null;
 
-        public async Task<Models.Task> ExecuteAsync(Models.Task task, Skill selectedSkill, Settings settings)
+        public async Task<Models.Task> Execute(Models.Task task, Skill selectedSkill, Settings settings)
         {
             var voiceModel = task.SpecialAction.Replace("TextToSpeech", "");
             var dataInputDirectory = FilePathHelper.GetDataInputDirectory();

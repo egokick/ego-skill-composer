@@ -9,7 +9,7 @@ namespace skill_composer.SpecialActions
 {
     public class FileConvertHeicToJpg : ISpecialAction
     {
-        public async Task<Models.Task> ExecuteAsync(Models.Task task, Skill selectedSkill, Settings settings)
+        public async Task<Models.Task> Execute(Models.Task task, Skill selectedSkill, Settings settings)
         {
             var heicFilePath = task.FilePath;
 

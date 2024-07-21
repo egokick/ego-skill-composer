@@ -536,7 +536,7 @@
 		},
 		{
 			"SkillName": "QR_Code_Email_Demo",
-			"Description": "Create QR code and email",
+			"Description": "Create QR code and email. We first ask the user for an email address in the console, a subject line and the content of the email, we use this data to craft a custom QR code containing a mailto link with this email information. Then, using a 'hard coded' email address (in this skill definition) we embed the QR code into the body of an email and send it.",
 			"OpenAiModel": "gpt-4o",
 			"Temperature": 0.5,
 			"RepeatCount": 1,
@@ -562,7 +562,7 @@
 				{
 					"Number": 4,
 					"Name": "Format QR code mailto",
-					"Input": "mailto:{{Output[1]}?subject={{Output[2]}}&body={{Output[3]}}",
+					"Input": "mailto:{{Output[1]}}?subject={{Output[2]}}&body={{Output[3]}}",
 					"Mode": "Internal",
 					"SpecialAction": "CopyInputToOutput"
 				},
@@ -576,8 +576,7 @@
 				{
 					"Number": 6,
 					"Name": "Email the QR code",
-					"Input": "tomcadesign@gmail.com\n{{Output[6]}}",
-					"FilePath": "{{FilePath[5]}}",
+					"Input": "to:egokick@gmail.com;tomcadesign@gmail.com\ncc:tom.cadesign@gmail.com\nsubject:you did great!\nbody:<html><body><p>Your Results:</p><img src='{{Output[5]}}' alt='Embedded Image'/></body></html>",
 					"Mode": "Internal",
 					"SpecialAction": "EmailSend"
 				}
@@ -599,7 +598,7 @@
 				},
 				{
 					"Number": 2,
-					"Name": "Get the email content, does this email contain money?",
+					"Name": "Get the email content and load it into the task.Output variable",
 					"Input": "{{FilePath[1]}}",
 					"Mode": "Internal",
 					"SpecialAction": "FileRead"
@@ -638,7 +637,7 @@
 				{
 					"Number": 8,
 					"Name": "Send email with evaluated output",
-					"Input": "tomcadesign@gmail.com\n{{Output[6]}}",
+					"Input": "to:tomcadesign@gmail.com\nsubject:{{Output[6]}}\nbody:\nContains Money: {{Output[3]}}\nPolitical: {{Output[4]}}\nLanguange: {{Output[5]}}",
 					"FilePath": "{{FilePath[7]}}",
 					"Mode": "Internal",
 					"SpecialAction": "EmailSend"

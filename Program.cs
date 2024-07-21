@@ -16,11 +16,7 @@ namespace skill_composer
         {
             PrintHelper.PrintLogo();
 
-            var settingsJson = File.ReadAllText(FilePathHelper.GetSettingsFile());
-
-            var settings = JsonConvert.DeserializeObject<Settings>(settingsJson);           
-
-            _settings = FilePathHelper.InitializeSettings(settings);
+            _settings = SettingsHelper.Load();
 
             api = new ApiHandler(_settings);
 
@@ -106,7 +102,7 @@ namespace skill_composer
             {                
                 var action = SpecialActionRegistry.GetAction(task.SpecialAction);
                 
-                task = await action.ExecuteAsync(task, selectedSkill, _settings);
+                task = await action.Execute(task, selectedSkill, _settings);
             }
 
             return task;

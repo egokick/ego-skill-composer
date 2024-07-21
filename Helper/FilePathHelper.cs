@@ -103,7 +103,7 @@ namespace skill_composer.Helper
             var path = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
 
             // Check if this directory contains features and config folder, if it doesn't go up a directory and look again
-            var programExists = File.Exists(Path.Combine(path, "Program.cs"));
+            var programExists = File.Exists(Path.Combine(path, "Program.cs")) && !path.ToLower().Contains("test");
             
             if (programExists)
             {
@@ -114,7 +114,7 @@ namespace skill_composer.Helper
 
             for (int i = 0; i < 15; i++)
             {
-                programExists = File.Exists(Path.Combine(dir, "Program.cs")); 
+                programExists = File.Exists(Path.Combine(dir, "Program.cs")) && !dir.ToLower().Contains("test"); 
                 if (programExists)
                 {
                     _skillComposerDirectory = dir;

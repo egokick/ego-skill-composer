@@ -7,7 +7,7 @@ namespace skill_composer.SpecialActions
 {
     public class RunSkill : ISpecialAction
     {
-        public async Task<Models.Task> ExecuteAsync(Models.Task task, Skill selectedSkill, Settings settings)
+        public async Task<Models.Task> Execute(Models.Task task, Skill selectedSkill, Settings settings)
         {
             string skillName = task.Input.Trim();
 

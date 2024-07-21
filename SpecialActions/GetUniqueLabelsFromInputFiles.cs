@@ -5,7 +5,7 @@ namespace skill_composer.SpecialActions
 {
     public class GetUniqueLabelsFromInputFiles : ISpecialAction
     {
-        public async Task<Models.Task> ExecuteAsync(Models.Task task, Skill selectedSkill, Settings settings)
+        public async Task<Models.Task> Execute(Models.Task task, Skill selectedSkill, Settings settings)
         {
             var inputDirectory = FilePathHelper.GetDataInputDirectory();
 

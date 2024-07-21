@@ -7,7 +7,7 @@ namespace skill_composer.SpecialActions
     public class RenameFile : ISpecialAction
     { 
 
-        public async Task<Models.Task> ExecuteAsync(Models.Task task, Skill selectedSkill, Settings settings)
+        public async Task<Models.Task> Execute(Models.Task task, Skill selectedSkill, Settings settings)
         { 
             var fileName = Path.GetFileName(task.FilePath);
             var directory = Path.GetDirectoryName(task.FilePath);

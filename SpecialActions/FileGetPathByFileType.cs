@@ -8,7 +8,7 @@ namespace skill_composer.SpecialActions
 {
     public class FileGetPathByFileType : ISpecialAction
     {
-        public async Task<Models.Task> ExecuteAsync(Models.Task task, Skill selectedSkill, Settings settings)
+        public async Task<Models.Task> Execute(Models.Task task, Skill selectedSkill, Settings settings)
         {
             // Get the directory where input files are stored
             var inputDirectory = FilePathHelper.GetDataInputDirectory();

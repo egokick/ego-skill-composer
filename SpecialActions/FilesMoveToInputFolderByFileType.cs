@@ -9,7 +9,7 @@ namespace skill_composer.SpecialActions
 {
     public class FilesMoveToInputFolderByFileType : ISpecialAction
     {
-        public async Task<Models.Task> ExecuteAsync(Models.Task task, Skill selectedSkill, Settings settings)
+        public async Task<Models.Task> Execute(Models.Task task, Skill selectedSkill, Settings settings)
         {
             var outputDirectory = FilePathHelper.GetDataOutputDirectory();
             var inputDirectory = FilePathHelper.GetDataInputDirectory();
