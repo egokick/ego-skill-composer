@@ -6,7 +6,9 @@ Craft text and image prompts, chain AI responses, software functions (SpecialAct
 The composability of these things are the main strengths of this tool.
 
 [Demo Convert Spanish book to English audio](https://raw.githubusercontent.com/egokick/ego-skill-composer/main/demo.mp4)
- 
+
+[![Watch the video](https://raw.githubusercontent.com/egokick/ego-skill-composer/main/demo.mp4)](https://raw.githubusercontent.com/egokick/ego-skill-composer/main/demo.mp4)
+
 Edit the skills.json file to create an automation
 
 - task.**Number** - The order of the task, this is used to reference the Output field (the responses of the AI or the User) of other tasks.
