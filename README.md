@@ -36,146 +36,205 @@ Skill Composer is a console application designed to facilitate AI-driven skill g
 
 
 # Special Actions
+# Summary of ISpecialAction Implementations
 
-## 1. ConcatenateFilesByLabel
-- **Reads**: `task.InputFiles`, `task.Labels`
-- **Sets**: `task.OutputFile`
-- **Description**: Concatenates input files based on specific labels and stores the result in an output file.
+This document provides a summary of each class that implements the `ISpecialAction` interface, detailing the purpose of each class and the fields from the `Task` class they read from and set.
 
-## 2. ConcatenateAllInputFiles
-- **Reads**: `task.InputFiles`
-- **Sets**: `task.OutputFile`
-- **Description**: Concatenates all input files into a single output file.
+## ConcatenateFilesByLabel
+**Purpose**: Concatenates files based on a label.
+- **Reads**: `Input`, `FilePath`
+- **Sets**: `Output`
 
-## 3. CopyInputToOutput
-- **Reads**: `task.InputFiles`
-- **Sets**: `task.OutputFiles`
-- **Description**: Copies the input files directly to the output.
+[Source](https://github.com/egokick/ego-skill-composer/blob/main/SpecialActions/ConcatenateFilesByLabel.cs)
 
-## 4. DelayInSeconds
-- **Reads**: `task.DelaySeconds`
+## ConcatenateAllInputFiles
+**Purpose**: Concatenates all input files into one.
+- **Reads**: `Input`
+- **Sets**: `Output`
+
+[Source](https://github.com/egokick/ego-skill-composer/blob/main/SpecialActions/ConcatenateAllInputFiles.cs)
+
+## CopyInputToOutput
+**Purpose**: Copies the input content to the output.
+- **Reads**: `Input`
+- **Sets**: `Output`
+
+[Source](https://github.com/egokick/ego-skill-composer/blob/main/SpecialActions/CopyInputToOutput.cs)
+
+## DelayInSeconds
+**Purpose**: Delays the task execution by a specified number of seconds.
+- **Reads**: None
 - **Sets**: None
-- **Description**: Introduces a delay for a specified number of seconds before continuing with the next action.
 
-## 5. EmailDownloadAllFromFolder
-- **Reads**: `task.EmailCredentials`, `task.FolderName`
-- **Sets**: `task.OutputFiles`
-- **Description**: Downloads all files from a specified email folder.
+[Source](https://github.com/egokick/ego-skill-composer/blob/main/SpecialActions/DelayInSeconds.cs)
 
-## 6. EmailDownloadFromFolder
-- **Reads**: `task.EmailCredentials`, `task.FolderName`, `task.FileName`
-- **Sets**: `task.OutputFile`
-- **Description**: Downloads a specific file from a specified email folder.
+## EmailDownloadAllFromFolder
+**Purpose**: Downloads all emails from a specified folder.
+- **Reads**: `FilePath`
+- **Sets**: `Output`
 
-## 7. EmailSend
-- **Reads**: `task.EmailCredentials`, `task.Recipients`, `task.Subject`, `task.Body`, `task.Attachments`
+[Source](https://github.com/egokick/ego-skill-composer/blob/main/SpecialActions/EmailDownloadAllFromFolder.cs)
+
+## EmailDownloadFromFolder
+**Purpose**: Downloads emails from a specified folder based on certain criteria.
+- **Reads**: `FilePath`
+- **Sets**: `Output`
+
+[Source](https://github.com/egokick/ego-skill-composer/blob/main/SpecialActions/EmailDownloadFromFolder.cs)
+
+## EmailSend
+**Purpose**: Sends an email with the given input as the message content.
+- **Reads**: `Input`
 - **Sets**: None
-- **Description**: Sends an email with the specified subject, body, and attachments.
 
-## 8. FileConvertHeicToJpg
-- **Reads**: `task.InputFiles`
-- **Sets**: `task.OutputFiles`
-- **Description**: Converts HEIC files to JPG format.
+[Source](https://github.com/egokick/ego-skill-composer/blob/main/SpecialActions/EmailSend.cs)
 
-## 9. FileConvertHeicToPng
-- **Reads**: `task.InputFiles`
-- **Sets**: `task.OutputFiles`
-- **Description**: Converts HEIC files to PNG format.
+## FileConvertHeicToJpg
+**Purpose**: Converts HEIC files to JPG format.
+- **Reads**: `Input`, `FilePath`
+- **Sets**: `Output`
 
-## 10. FileGetPath
-- **Reads**: `task.InputFile`
-- **Sets**: `task.OutputPath`
-- **Description**: Retrieves the path of a specified input file.
+[Source](https://github.com/egokick/ego-skill-composer/blob/main/SpecialActions/FileConvertHeicToJpg.cs)
 
-## 11. FileGetPathByFileType
-- **Reads**: `task.InputFiles`, `task.FileType`
-- **Sets**: `task.OutputPaths`
-- **Description**: Retrieves paths of input files that match a specified file type.
+## FileConvertHeicToPng
+**Purpose**: Converts HEIC files to PNG format.
+- **Reads**: `Input`, `FilePath`
+- **Sets**: `Output`
 
-## 12. FileMoveToOutput
-- **Reads**: `task.InputFiles`
-- **Sets**: `task.OutputFiles`
-- **Description**: Moves input files to the output location.
+[Source](https://github.com/egokick/ego-skill-composer/blob/main/SpecialActions/FileConvertHeicToPng.cs)
 
-## 13. FileRead
-- **Reads**: `task.InputFile`
-- **Sets**: `task.FileContent`
-- **Description**: Reads the content of a specified input file.
+## FileGetPath
+**Purpose**: Retrieves the file path for the given input.
+- **Reads**: `Input`
+- **Sets**: `FilePath`
 
-## 14. FileRotateImage
-- **Reads**: `task.InputFile`, `task.RotationAngle`
-- **Sets**: `task.OutputFile`
-- **Description**: Rotates an image by a specified angle.
+[Source](https://github.com/egokick/ego-skill-composer/blob/main/SpecialActions/FileGetPath.cs)
 
-## 15. FileWriteInput
-- **Reads**: `task.FileContent`
-- **Sets**: `task.OutputFile`
-- **Description**: Writes specified content to an input file.
+## FileGetPathByFileType
+**Purpose**: Retrieves file paths by specified file types.
+- **Reads**: `Input`
+- **Sets**: `FilePath`
 
-## 16. FileWriteOutput
-- **Reads**: `task.FileContent`
-- **Sets**: `task.OutputFile`
-- **Description**: Writes specified content to an output file.
+[Source](https://github.com/egokick/ego-skill-composer/blob/main/SpecialActions/FileGetPathByFileType.cs)
 
-## 17. FileWriteSplitOutput
-- **Reads**: `task.FileContent`
-- **Sets**: `task.OutputFiles`
-- **Description**: Writes specified content to multiple output files.
+## FileMoveToOutput
+**Purpose**: Moves a file to the output location.
+- **Reads**: `Input`, `FilePath`
+- **Sets**: `Output`
 
-## 18. FilesMoveToInputFolder
-- **Reads**: `task.InputFiles`, `task.InputFolder`
-- **Sets**: `task.OutputFiles`
-- **Description**: Moves input files to a specified input folder.
+[Source](https://github.com/egokick/ego-skill-composer/blob/main/SpecialActions/FileMoveToOutput.cs)
 
-## 19. FilesMoveToInputFolderByFileType
-- **Reads**: `task.InputFiles`, `task.FileType`, `task.InputFolder`
-- **Sets**: `task.OutputFiles`
-- **Description**: Moves files of a specified type to a specified input folder.
+## FileRead
+**Purpose**: Reads the content of a file.
+- **Reads**: `FilePath`
+- **Sets**: `Input`
 
-## 20. FilesMoveToOutputFolder
-- **Reads**: `task.InputFiles`, `task.OutputFolder`
-- **Sets**: `task.OutputFiles`
-- **Description**: Moves input files to a specified output folder.
+[Source](https://github.com/egokick/ego-skill-composer/blob/main/SpecialActions/FileRead.cs)
 
-## 21. GetUniqueLabelsFromInputFiles
-- **Reads**: `task.InputFiles`
-- **Sets**: `task.OutputLabels`
-- **Description**: Extracts unique labels from input files.
+## FileRotateImage
+**Purpose**: Rotates an image by a specified degree.
+- **Reads**: `Input`, `FilePath`
+- **Sets**: `Output`
 
-## 22. QRCodeCreate
-- **Reads**: `task.Data`
-- **Sets**: `task.OutputFile`
-- **Description**: Creates a QR code from specified data and saves it as an output file.
+[Source](https://github.com/egokick/ego-skill-composer/blob/main/SpecialActions/FileRotateImage.cs)
 
-## 23. RenameFile
-- **Reads**: `task.InputFile`, `task.NewFileName`
-- **Sets**: `task.OutputFile`
-- **Description**: Renames a specified input file.
+## FileWriteInput
+**Purpose**: Writes the input content to a file.
+- **Reads**: `Input`
+- **Sets**: `FilePath`
 
-## 24. RunDatabaseQuery
-- **Reads**: `task.DatabaseCredentials`, `task.Query`
-- **Sets**: `task.QueryResult`
-- **Description**: Executes a database query and stores the result.
+[Source](https://github.com/egokick/ego-skill-composer/blob/main/SpecialActions/FileWriteInput.cs)
 
-## 25. RunSkill
-- **Reads**: `task.SkillName`, `task.SkillParameters`
-- **Sets**: `task.SkillResult`
-- **Description**: Runs a specified skill with given parameters and stores the result.
+## FileWriteOutput
+**Purpose**: Writes the output content to a file.
+- **Reads**: `Output`
+- **Sets**: `FilePath`
 
-## 26. SpeechToTextRealTime
-- **Reads**: `task.AudioStream`
-- **Sets**: `task.Transcript`
-- **Description**: Converts real-time speech from an audio stream to text.
+[Source](https://github.com/egokick/ego-skill-composer/blob/main/SpecialActions/FileWriteOutput.cs)
 
-## 27. SpeechToTextTranslateToEnglish
-- **Reads**: `task.AudioFile`, `task.SourceLanguage`
-- **Sets**: `task.Transcript`
-- **Description**: Converts speech from an audio file to English text.
+## FileWriteSplitOutput
+**Purpose**: Writes split output content to multiple files.
+- **Reads**: `Output`
+- **Sets**: `FilePath`
 
-## 28. TextToSpeech
-- **Reads**: `task.Text`
-- **Sets**: `task.AudioFile`
-- **Description**: Converts specified text to speech and saves it as an audio file.
+[Source](https://github.com/egokick/ego-skill-composer/blob/main/SpecialActions/FileWriteSplitOutput.cs)
+
+## FilesMoveToInputFolder
+**Purpose**: Moves files to the input folder.
+- **Reads**: `FilePath`
+- **Sets**: `Input`
+
+[Source](https://github.com/egokick/ego-skill-composer/blob/main/SpecialActions/FilesMoveToInputFolder.cs)
+
+## FilesMoveToInputFolderByFileType
+**Purpose**: Moves files of specified types to the input folder.
+- **Reads**: `FilePath`
+- **Sets**: `Input`
+
+[Source](https://github.com/egokick/ego-skill-composer/blob/main/SpecialActions/FilesMoveToInputFolderByFileType.cs)
+
+## FilesMoveToOutputFolder
+**Purpose**: Moves files to the output folder.
+- **Reads**: `FilePath`
+- **Sets**: `Output`
+
+[Source](https://github.com/egokick/ego-skill-composer/blob/main/SpecialActions/FilesMoveToOutputFolder.cs)
+
+## GetUniqueLabelsFromInputFiles
+**Purpose**: Retrieves unique labels from input files.
+- **Reads**: `Input`
+- **Sets**: `Output`
+
+[Source](https://github.com/egokick/ego-skill-composer/blob/main/SpecialActions/GetUniqueLabelsFromInputFiles.cs)
+
+## QRCodeCreate
+**Purpose**: Creates a QR code from the input data.
+- **Reads**: `Input`
+- **Sets**: `Output`
+
+[Source](https://github.com/egokick/ego-skill-composer/blob/main/SpecialActions/QRCodeCreate.cs)
+
+## RenameFile
+**Purpose**: Renames a file based on the provided input.
+- **Reads**: `FilePath`
+- **Sets**: `Output`
+
+[Source](https://github.com/egokick/ego-skill-composer/blob/main/SpecialActions/RenameFile.cs)
+
+## RunDatabaseQuery
+**Purpose**: Executes a database query using the input data.
+- **Reads**: `Input`
+- **Sets**: `Output`
+
+[Source](https://github.com/egokick/ego-skill-composer/blob/main/SpecialActions/RunDatabaseQuery.cs)
+
+## RunSkill
+**Purpose**: Executes a specific skill defined by the input.
+- **Reads**: `Input`, `FilePath`
+- **Sets**: `Output`
+
+[Source](https://github.com/egokick/ego-skill-composer/blob/main/SpecialActions/RunSkill.cs)
+
+## SpeechToTextRealTime
+**Purpose**: Converts speech to text in real-time.
+- **Reads**: None
+- **Sets**: `Output`
+
+[Source](https://github.com/egokick/ego-skill-composer/blob/main/SpecialActions/SpeechToTextRealTime.cs)
+
+## SpeechToTextTranslateToEnglish
+**Purpose**: Translates speech to English text.
+- **Reads**: `Input`
+- **Sets**: `Output`
+
+[Source](https://github.com/egokick/ego-skill-composer/blob/main/SpecialActions/SpeechToTextTranslateToEnglish.cs)
+
+## TextToSpeech
+**Purpose**: Converts text to speech.
+- **Reads**: `Input`
+- **Sets**: `Output`
+
+[Source](https://github.com/egokick/ego-skill-composer/blob/main/SpecialActions/TextToSpeech.cs)
 
 ## Available Models
 Available values : gpt-35-turbo-0613, gpt-35-turbo-16k-0613, gpt-4-0613, gpt-4-32k-0613
