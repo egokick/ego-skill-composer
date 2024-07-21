@@ -8,7 +8,7 @@ The composability of these things are the main strengths of this tool.
 
 **Demo of converting images of a book written in spanish to an audiobook in english**
 
-
+<iframe width="560" height="315" src="https://github.com/egokick/ego-skill-composer/raw/main/demo.mp4" frameborder="0" allowfullscreen></iframe>
 
 Edit the skills.json file to create an automation
 
