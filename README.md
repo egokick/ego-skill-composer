@@ -12,7 +12,7 @@ Skill Composer is a console application designed to facilitate AI-driven skill g
 
 ### Prerequisites
 
-- .net 6.0
+- .net 6.0 or greater
 - An OpenAI API key
 
 ### Installation
@@ -33,11 +33,7 @@ Skill Composer is a console application designed to facilitate AI-driven skill g
    dotnet run
    ```
 
-## Usage
 
-After running the application, follow the on-screen prompts to either generate new AI skills or debug previous outputs. Select the desired operation by entering the corresponding number:
-
-1. **AI Skill Generation:** Generate a new skill set based on user inputs and AI responses. 
 
 # Special Actions
 
