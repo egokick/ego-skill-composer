@@ -5,8 +5,7 @@ Skill Composer is a tool to create automation.
 Craft text and image prompts, chain AI responses, software functions (SpecialActions) and user inputs.
 The composability of these things are the main strengths of this tool.
 
-[Demo Convert Spanish book to English audio]([https://www.youtube.com/watch?v=abcd1234](https://github.com/egokick/ego-skill-composer/raw/main/demo.mp4))
-
+[Demo Convert Spanish book to English audio](https://raw.githubusercontent.com/egokick/ego-skill-composer/main/demo.mp4)
  
 Edit the skills.json file to create an automation
 
