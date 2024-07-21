@@ -1,7 +1,14 @@
 # Skill Composer
 
-Skill Composer is a tool to create automation. Craft text prompts that chain together AI responses, software functions (SpecialActions) and user input.
-The strengths of this tool are in the composability and chaining of these things.
+Skill Composer is a tool to create automation. 
+
+Craft text and image prompts, chain AI responses, software functions (SpecialActions) and user inputs.
+The composability of these things are the main strengths of this tool.
+
+
+**Demo of converting images of a book written in spanish to an audiobook in english**
+
+
 
 Edit the skills.json file to create an automation
 
@@ -17,6 +24,7 @@ Edit the skills.json file to create an automation
 - You can use the special action "RunSkill" to invoke skills you have already created, this lets you create small skills that do specific things and then chain them together in different ways.
 - Data processing - To process files a data/input and data/output folder is created. Use special action "FileGetPath" or "FileRead" to get a file from the input folder. Use special action "FileMoveToOutput" or "FilesMoveToOutputFolder" to move files to the output folder.
 - Skill.**RepeatCount** - Set this to a large number if you want to run the automation in a loop. 
+- The skills.json file design doesn't support "if" statements because they make things too complicated. Instead, try these simpler strategies. Ask the AI for output based on a condition: In your prompt to the AI, you can say: "Output 'true' if {your condition}, else output 'false'." Use different file names for conditions:Create files for each condition (true or false). In the next step, use the SpecialAction 'RunSkill' to run a skill that processes the appropriate file for your condition. This design allows you to simply read the skills.json file in order and known that everything is going to be executed in exactly the same order.
 
 # Special Actions 
 ## ConcatenateFilesByLabel
