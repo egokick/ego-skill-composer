@@ -99,10 +99,15 @@ namespace skill_composer
             }
 
             if (!string.IsNullOrEmpty(task.SpecialAction))
-            {                
-                var action = SpecialActionRegistry.GetAction(task.SpecialAction);
-                
-                task = await action.Execute(task, selectedSkill, _settings);
+            {
+                var specialActions = task.SpecialAction.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+                foreach (var actionName in specialActions)
+                {
+                    var action = SpecialActionRegistry.GetAction(actionName.Trim());
+
+                    task = await action.Execute(task, selectedSkill, _settings);
+                }
             }
 
             return task;
@@ -183,6 +188,7 @@ namespace skill_composer
         {
             var outputRegex = new Regex(@"\{\{Output\[(\d+)\]\}\}");
             var filePathRegex = new Regex(@"\{\{FilePath\[(\d+)\]\}\}");
+            var inputRegex = new Regex(@"\{\{Input\[(\d+)\]\}\}");
 
             if (!string.IsNullOrEmpty(task.Input))
             {
@@ -206,6 +212,20 @@ namespace skill_composer
                     if (index >= 0 && index < selectedSkill.Tasks.Count)
                     {
                         return selectedSkill.Tasks[index].FilePath;
+                    }
+                    else
+                    {
+                        return "";
+                    }
+                });
+
+                // Add Input replacement
+                task.Input = inputRegex.Replace(task.Input, match =>
+                {
+                    int index = int.Parse(match.Groups[1].Value) - 1;
+                    if (index >= 0 && index < selectedSkill.Tasks.Count)
+                    {
+                        return selectedSkill.Tasks[index].Input;
                     }
                     else
                     {

@@ -1,46 +1,109 @@
 {
 	"Skills": [
 		{
-			"SkillName": "__Configure_Settings",
+			"SkillName": "Audio_Convert_Text_To_Speech_nova_female",
+			"Description": "This requires you place a single text file in the data/input folder, the audio files will be placed in the data/output folder. The audio files will be numbered sequentially, each audio file contains up to 4096 characters. The audio will use the female voice 'nova'",
 			"Temperature": 0.1,
 			"RepeatCount": 1,
 			"Tasks": [
 				{
 					"Number": 1,
-					"Name": "Get_OpenAI_API_Key",
-					"Mode": "User",
-					"Input": "Please Input your OpenAI API key - leave empty if already set"
+					"Name": "Set_Input_FilePath_And_Output_File_Content",
+					"Mode": "Internal",
+					"SpecialAction": "FileRead"
 				},
 				{
 					"Number": 2,
-					"Name": "Get_OpenAI_Model_Name",
-					"Mode": "User",
-					"Input": "Please input the OpenAi model name, e.g. 'gpt-4-turbo-2024-04-09' leave empty if already set"
+					"Name": "Audio_Convert_Input_Text_To_Speech",
+					"Mode": "Internal",
+					"Input": "{{Output[1]}}",
+					"SpecialAction": "TextToSpeechnova"
+				}
+			]
+		},
+		{
+			"SkillName": "Audio_Translate_Audio_To_English_Text_RealTime",
+			"Description": "WIP - This lets you select a speaker device, captures the audio and converts it to english text",
+			"Temperature": 0.1,
+			"RepeatCount": 1,
+			"Tasks": [
+				{
+					"Number": 1,
+					"Name": "Audio_Convert_Input_Audio_To_Text",
+					"Mode": "Internal",
+					"SpecialAction": "SpeechToTextRealTimeFromSpeaker"
+				}
+			]
+		},
+		{
+			"SkillName": "Rank_Communication_WIP",
+			"Description": "Designed to have a conversation with a person and gather their responses for evaluation.",
+			"Temperature": 0.1,
+			"RepeatCount": 1,
+			"Tasks": [
+				{
+					"Number": 1,
+					"Name": "Tell the ai what it's doing",
+					"Mode": "AI",
+					"Input": "You are an AI designed to assess a person's communication skills. You have 5 minutes to engage in a conversation with the individual. Use the following structured approach to evaluate their clarity, conciseness, engagement, empathy, non-verbal communication (assume you can detect this), and active listening. Instructions: Introduction (30 seconds): Greet the person and introduce the purpose of the conversation. Example: 'Hi, I'm an AI designed to get to know you better and understand your communication style. Let's have a quick chat about something you enjoy or have recently experienced.' Main Discussion (3.5 minutes):Engagement & Clarity: Start with an open-ended question about a favorite hobby or recent experience. Example: 'Can you tell me about a hobby you enjoy or something interesting you've done recently?' Follow-up Questions: 'What got you interested in that hobby?' or 'Can you share a memorable moment from your recent vacation?' If the person says they haven't worked on a team project or group activity, pivot to another question: Example: 'That's perfectly fine! Can you tell me about a personal challenge you’ve faced and how you overcame it?' or 'Have you ever learned a new skill or hobby recently? What was the process like for you?' Empathy: Encourage them to describe how they managed different perspectives or helped others. Example: 'How did you handle differences of opinion within the team?' or 'What did you do to support a team member struggling with their part?' Conclusion (1 minute): Summarize what they've shared and reflect on it to demonstrate active listening. Example: 'It sounds like you have a real passion for [hobby] and enjoyed [specific experience]. It's great to hear how you [managed a team or supported others].'End with a final question to give them a chance to express additional thoughts. Example: 'Is there anything else you'd like to share about your experiences or any other interests you have?'"
+				},
+				{
+					"Number": 2,
+					"Name": "Get the first thing the AI will say to the User",
+					"Mode": "AI",
+					"Input": "ConversationHistory: SystemPrompt:{{Input[1]}}, Ai: {{Output[1]}}, SystemPrompt: You are about to start the conversation.The user does not have access to any information I have provided to you. DON'T INCLUDE ANY FORMATTING, JUST THINGS THAT WILL YOU WILL SAY, THIS IS A NORMAL CONVERSATION. "
 				},
 				{
 					"Number": 3,
-					"Name": "Get_Database_Name",
+					"Name": "Get the user response",
 					"Mode": "User",
-					"Input": "Please input a name for your database, this only for your own reference:"
+					"Input": "{{Output[2]}}"
 				},
 				{
 					"Number": 4,
-					"Name": "Get_Database_ConnectionString",
-					"Mode": "User",
-					"Input": "Please input your database connection string:"
+					"Name": "AI response to the user",
+					"Mode": "AI",
+					"Input": "{{Input[2]}}, Ai:{{Output[2]}}, User: {{Output[3]}}"
 				},
 				{
 					"Number": 5,
-					"Name": "Get_AssemblyAi_API_Key",
+					"Name": "Get the user response",
 					"Mode": "User",
-					"Input": "Please input your Assembly AI API Key:"
+					"Input": "{{Output[4]}}"
 				},
 				{
 					"Number": 6,
-					"Name": "ConfigureSettings",
-					"Mode": "Internal",
-					"SpecialAction": "ConfigureSettings",
-					"Input": "OpenAi Api Key: {{Output[1]}}, OpenAiModel: {{Output[2]}}, DatabaseName: {{Output[3]}}, DatabaseConnectionString: {{Output[4]}}, AssemblyAiAPIKey: {{Output[5]}}"
+					"Name": "AI response to the user",
+					"Mode": "AI",
+					"Input": "{{Input[4]}}, Ai:{{Output[4]}}, User: {{Output[5]}}"
+				},
+				{
+					"Number": 7,
+					"Name": "Get the user response",
+					"Mode": "User",
+					"Input": "{{Output[6]}}"
+				}
+			]
+		},
+		{
+			"SkillName": "Rank_Communication_V2",
+			"Description": "Designed to have a conversation with a person and gather their responses for evaluation.",
+			"Temperature": 0.1,
+			"RepeatCount": 1,
+			"Tasks": [
+				{
+					"Number": 1,
+					"Name": "Engage in conversation mode, reads the SpeechConversationMode.json file and sets the input to it, the Output will be the complete ordered dialogue between the user and AI.",
+					"Mode": "AI",
+					"Input": "",
+					"SpecialAction": "SpeechConversationMode",
+					"FilePath": "C:\\source\\ProjectSecretary\\skill-composer\\SpeechConversationMode.json"
+				},
+				{
+					"Number": 2,
+					"Name": "Get the user response",
+					"Mode": "User",
+					"Input": "{{Output[1]}}"
 				}
 			]
 		},
@@ -185,7 +248,7 @@
 			]
 		},
 		{
-			"SkillName": "Audio_Translate_Audio_To_English_Text",
+			"SkillName": "Audio_Convert_Audio_To_Text",
 			"Description": "This requires you place a single audio or video file in the data/input folder, the text transcription file will be placed in the data/output folder. ",
 			"Temperature": 0.1,
 			"RepeatCount": 1,
@@ -194,13 +257,13 @@
 					"Number": 1,
 					"Name": "Audio_Convert_Input_Audio_To_Text",
 					"Mode": "Internal",
-					"SpecialAction": "SpeechToTextTranslateToEnglish"
+					"SpecialAction": "SpeechToTextFromFile"
 				}
 			]
-		},
+		},		
 		{
-			"SkillName": "Audio_Translate_Audio_To_English_Text_RealTime",
-			"Description": "WIP - This lets you select a speaker device, captures the audio and converts it to english text",
+			"SkillName": "Audio_Convert_Audio_To_Text_From_Speaker",
+			"Description": "This converts audio from your speaker into text, it can handle multiple languages",
 			"Temperature": 0.1,
 			"RepeatCount": 1,
 			"Tasks": [
@@ -208,28 +271,7 @@
 					"Number": 1,
 					"Name": "Audio_Convert_Input_Audio_To_Text",
 					"Mode": "Internal",
-					"SpecialAction": "SpeechToTextRealTime"
-				}
-			]
-		},
-		{
-			"SkillName": "Audio_Convert_Text_To_Speech_nova_female",
-			"Description": "This requires you place a single text file in the data/input folder, the audio files will be placed in the data/output folder. The audio files will be numbered sequentially, each audio file contains up to 4096 characters. The audio will use the female voice 'nova'",
-			"Temperature": 0.1,
-			"RepeatCount": 1,
-			"Tasks": [
-				{
-					"Number": 1,
-					"Name": "Set_Input_FilePath_And_Output_File_Content",
-					"Mode": "Internal",
-					"SpecialAction": "FileRead"
-				},
-				{
-					"Number": 2,
-					"Name": "Audio_Convert_Input_Text_To_Speech",
-					"Mode": "Internal",
-					"Input": "{{Output[1]}}",
-					"SpecialAction": "TextToSpeechnova"
+					"SpecialAction": "SpeechToTextFromMicrophone"
 				}
 			]
 		},

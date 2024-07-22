@@ -6,14 +6,18 @@ using Flurl.Http;
 
 namespace skill_composer.SpecialActions
 {
-    public class SpeechToTextTranslateToEnglish : ISpecialAction
+    public class SpeechToTextFromFile : ISpecialAction
     { 
-
         public async Task<Models.Task> Execute(Models.Task task, Skill selectedSkill, Settings settings)
         {
+            var inputFilePath = task.Input;
+
+            if (!string.IsNullOrEmpty(inputFilePath))
+            {
+                inputFilePath = FilePathHelper.GetDataInputFilePath();
+            }
+            
             var outputDirectory = FilePathHelper.GetDataOutputDirectory();
-            var inputFilePath = FilePathHelper.GetDataInputFilePath();
-            var inputFileName = Path.GetFileName(inputFilePath);
 
             if (string.IsNullOrEmpty(inputFilePath))
             {
@@ -21,12 +25,15 @@ namespace skill_composer.SpecialActions
             }
             else
             {
+                var inputFileName = Path.GetFileName(inputFilePath);
+
                 var extension = Path.GetExtension(inputFilePath);
 
                 if (extension != ".mp3")
                 {
                     // try to convert it to an mp3 with ffmpeg 
-                    var mp3FileName = inputFileName.Replace(extension, ".mp3");
+                    var mp3FileName = inputFileName.Replace(extension, ".mp3"); 
+
                     var mp3FilePath = Path.Combine(outputDirectory, mp3FileName);
 
                     ConvertToMp3(inputFilePath, mp3FilePath);
@@ -40,7 +47,7 @@ namespace skill_composer.SpecialActions
 
                 foreach (var filePath in audioFiles)
                 {
-                    string translatedText = TranslateAudioToEnglishText(filePath, settings).Result;
+                    string translatedText = TranslateAudioToText(filePath, settings).Result;
                     translatedTexts.Add(translatedText);
                     Console.WriteLine(translatedText);
 
@@ -66,7 +73,7 @@ namespace skill_composer.SpecialActions
         }
 
 
-        public static async Task<string> TranslateAudioToEnglishText(string filePath, Settings settings)
+        public static async Task<string> TranslateAudioToText(string filePath, Settings settings)
         {
             var jsonResponse = await "https://api.openai.com/v1/audio/translations"
                 .WithHeader("Authorization", $"Bearer {settings.OpenAiKey}")

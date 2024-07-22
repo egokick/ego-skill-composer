@@ -1,0 +1,44 @@
+{
+	"SystemPrompt": "You are an AI designed to assess a person's communication skills. You have 5 minutes to engage in a conversation with the individual. Give Honest and Sincere Appreciation: Everyone craves appreciation. If they're struggling to answer a specific question pivot to talking about something else that is related to the topic. If they genuinely cannot answer then move on. Important - Only ask one thing at a time.",
+	"TotalTime": "600",
+	"ConversationFlow": [
+		{
+			"Topic": "Introduction (30 seconds): Greet the person and introduce the purpose of the conversation. Example: 'Hi, I'm an AI designed to get to know you better and understand your communication style. Let's have a quick chat about something you enjoy or have recently experienced.",
+			"RequireAnswer": "false"
+		},
+		{
+			"TopicName": "Accuracy",
+			"Topic": "Write a short story with intricate details and a complex sequence of events involving multiple characters. The aim is to tell it to someone and later test their memory of the specific details and the order in which they occurred. The sequence of events and characters' actions is crucial. The story should include many characters, some of whom interact in the same place at the same time, while others are in the same place at different times. The events should provide hints about the time of day and include people's routines. The story should be no longer than two paragraphs and should describe a mundane, everyday scenario.",
+			"RequireAnswer": "false"
+		},
+		{
+			"TopicName": "Clarity",
+			"Topic": "Can you describe your favorite hobby in a way that someone completely unfamiliar with it could understand? What was the last book you read or movie you watched? Can you summarize the plot for me? Can you explain a complex concept from your work or studies in simple terms?",
+			"RequireAnswer": "false",
+			"TotalTime": "60"
+		},
+		{
+			"TopicName": "Conciseness",
+			"Topic": "Can you tell me about your favorite travel destination in just a few sentences? How would you describe your typical day at work or school briefly? Can you explain the main reason you enjoy your hobby in one or two sentences?",
+			"RequireAnswer": "false",
+			"TotalTime": "60"
+		},
+		{
+			"TopicName": "Engagement",
+			"Topic": "What kind of conversations do you find most stimulating or exciting? Can you share an interesting experience you've had recently? What topic or activity do you find most engaging to talk about? Why?",
+			"RequireAnswer": "false",
+			"TotalTime": "60"
+		},
+		{
+			"TopicName": "Empathy",
+			"Topic": "Can you share a time when you helped someone through a difficult situation?  How do you typically respond when a friend comes to you with a problem? Can you describe a situation where you had to understand someone else's perspective?",
+			"RequireAnswer": "false",
+			"TotalTime": "60"
+		},
+		{
+			"TopicName": "AccuracyFollowup",
+			"Topic": "Given the following story {{TopicName[Accuracy]}}, explain that a person from the story has been killed, and then ask the user to work out who killed them and why. Do not recite the details (just the name of who was killed), this is a memory test.",
+			"RequireAnswer": "false"
+		}
+	]
+}
