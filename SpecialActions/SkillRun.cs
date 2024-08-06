@@ -5,14 +5,14 @@ using Task = System.Threading.Tasks.Task;
 
 namespace skill_composer.SpecialActions
 {
-    public class RunSkill : ISpecialAction
+    public class SkillRun : ISpecialAction
     {
-        public async Task<Models.Task> Execute(Models.Task task, Skill selectedSkill, Settings settings)
+        public async Task<Models.Task> Execute(Models.Task task, Skill selectedSkill)
         {
             string skillName = task.Input.Trim();
 
             // Load all skills from a JSON file
-            var allSkillsJson = File.ReadAllText(FilePathHelper.GetSkillFile());
+            var allSkillsJson = File.ReadAllText(FilePathHelper.GetSkillFilePath());
             var allSkills = JsonConvert.DeserializeObject<SkillSet>(allSkillsJson);
 
             // Find the skill by name
@@ -27,9 +27,9 @@ namespace skill_composer.SpecialActions
             {
                 task.Output = $"Initiating skill: {skillName}";
                 // Setting up an ApiHandler and Skill execution context as required
-                ApiHandler api = new ApiHandler(settings);
+                ApiHandler api = new ApiHandler();
                 // Recursive fun!
-                Program.AISkillGeneration(skillToRun); // Process each task and update it
+                Program.ProcessSkill(skillToRun); // Process each task and update it
             }
 
             return task;

@@ -19,7 +19,7 @@ namespace skill_composer.SpecialActions
     /// </summary>
     public class EmailDownloadAllFromFolder : ISpecialAction
     {
-        public async Task<Models.Task> Execute(Models.Task task, Skill selectedSkill, Settings settings)
+        public async Task<Models.Task> Execute(Models.Task task, Skill selectedSkill)
         {
             if (string.IsNullOrEmpty(task.Input))
             {

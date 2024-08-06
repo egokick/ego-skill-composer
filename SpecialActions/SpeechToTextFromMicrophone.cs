@@ -15,7 +15,7 @@ namespace skill_composer.SpecialActions
         private const int ConcatenationInterval = 2; // in seconds
         private static readonly string[] SupportedFileExtensions = { ".mp3" };
 
-        public async Task<Models.Task> Execute(Models.Task task, Skill selectedSkill, Settings settings)
+        public async Task<Models.Task> Execute(Models.Task task, Skill selectedSkill)
         {
             var outputDirectory = FilePathHelper.GetDataOutputDirectory();
             string selectedDevice = SelectAudioDevice();
@@ -26,7 +26,7 @@ namespace skill_composer.SpecialActions
 
             try
             {
-                var processingTask = StartProcessingAsync(outputDirectory, settings, cancellationToken);
+                var processingTask = StartProcessingAsync(outputDirectory, Program._settings, cancellationToken);
                 var recordingTask = StartRecordingAsync(outputDirectory, selectedDevice,  cancellationToken);              
 
                 // Wait for both tasks to complete

@@ -8,7 +8,7 @@ namespace skill_composer.SpecialActions
 {
     public class SpeechToTextFromFile : ISpecialAction
     { 
-        public async Task<Models.Task> Execute(Models.Task task, Skill selectedSkill, Settings settings)
+        public async Task<Models.Task> Execute(Models.Task task, Skill selectedSkill)
         {
             var inputFilePath = task.Input;
 
@@ -47,7 +47,7 @@ namespace skill_composer.SpecialActions
 
                 foreach (var filePath in audioFiles)
                 {
-                    string translatedText = TranslateAudioToText(filePath, settings).Result;
+                    string translatedText = TranslateAudioToText(filePath, Program._settings).Result;
                     translatedTexts.Add(translatedText);
                     Console.WriteLine(translatedText);
 

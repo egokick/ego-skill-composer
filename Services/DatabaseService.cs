@@ -14,8 +14,7 @@ namespace skill_composer.Services
     {
         private readonly string _connection;
         private readonly string _connectionNoCredentials;
-        private readonly bool _enableDebug = true;
-        private bool _disposed = false;  // To track whether Dispose has been called.
+        private readonly bool _enableDebug = true; 
 
         public const string OutputParameter = "|OUTPUT|";
 
@@ -28,8 +27,16 @@ namespace skill_composer.Services
             _connection = sharedSettings.Databases.First().ConnectionString;
             _connectionNoCredentials = _connection;
         }
+        /// <inheritdoc />
+        public int GetInteger(DataRow row, string columnName)
+        {
+            if (!row.Table.Columns.Contains(columnName)) return 0;
+            var success = int.TryParse(row[columnName].ToString(), out var val);
+            if (success) return val;
+            else return 0;
+        }
 
-        private string LoggingFormatSqlCommand(MySqlCommand cmd)
+        private static string LoggingFormatSqlCommand(MySqlCommand cmd)
         {
             // Start with the CALL statement and the stored procedure name
             var executableCommand = $"CALL {cmd.CommandText}(";
@@ -244,7 +251,7 @@ namespace skill_composer.Services
         }
 
         /// <inheritdoc />
-        public Dictionary<string, string> GetParameters<T>(T obj)
+        public static Dictionary<string, string> GetParameters<T>(T obj)
         {
             var properties = obj.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public)
                                 .Where(prop => !Attribute.IsDefined(prop, typeof(IgnoreParameterAttribute)));  // Filter out properties with the IgnoreParameter attribute
@@ -273,23 +280,16 @@ namespace skill_composer.Services
             };
         }
 
-        /// <inheritdoc />
-        public int GetInteger(DataRow row, string columnName)
-        {
-            if (!row.Table.Columns.Contains(columnName)) return 0;
-            var success = int.TryParse(row[columnName].ToString(), out var val);
-            if (success) return val;
-            else return 0;
-        }
+ 
 
         /// <inheritdoc />
-        public string GetString(DataRow row, string columnName)
+        public static string GetString(DataRow row, string columnName)
         {
             return !row.Table.Columns.Contains(columnName) ? "" : row[columnName].ToString();
         }
 
         /// <inheritdoc />
-        public bool GetBoolean(DataRow row, string columnName)
+        public static bool GetBoolean(DataRow row, string columnName)
         {
             if (!row.Table.Columns.Contains(columnName)) return false;
 

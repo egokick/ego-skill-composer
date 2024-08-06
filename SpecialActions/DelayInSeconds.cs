@@ -5,7 +5,7 @@ namespace skill_composer.SpecialActions
 {
     public class DelayInSeconds : ISpecialAction
     {
-        public async Task<Models.Task> Execute(Models.Task task, Skill selectedSkill, Settings settings)
+        public async Task<Models.Task> Execute(Models.Task task, Skill selectedSkill)
         {
             // Check if the input is valid and contains a number
             if (!string.IsNullOrEmpty(task.Input) && int.TryParse(task.Input, out int seconds))

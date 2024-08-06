@@ -11,7 +11,7 @@ namespace skill_composer.SpecialActions
 
     public class FileRead : ISpecialAction
     { 
-        public async Task<Models.Task> Execute(Models.Task task, Skill selectedSkill, Settings settings)
+        public async Task<Models.Task> Execute(Models.Task task, Skill selectedSkill)
         {
             if (string.IsNullOrEmpty(task.FilePath))
             {
@@ -29,7 +29,14 @@ namespace skill_composer.SpecialActions
                 }
                 else
                 {
-                    task.FilePath = task.Input;
+                    if (task.Input.StartsWith("\"") && task.Input.EndsWith("\""))
+                    {
+                        task.FilePath = task.Input.Substring(1, task.Input.Length - 2);
+                    }
+                    else
+                    {
+                        task.FilePath = task.Input;
+                    }
                 }
             }
 

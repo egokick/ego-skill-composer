@@ -8,7 +8,7 @@ namespace skill_composer.SpecialActions
 {
     public class FilesMoveToOutputFolder : ISpecialAction
     {
-        public async Task<Models.Task> Execute(Models.Task task, Skill selectedSkill, Settings settings)
+        public async Task<Models.Task> Execute(Models.Task task, Skill selectedSkill)
         {
             var inputDirectory = FilePathHelper.GetDataInputDirectory();
             var outputDirectory = FilePathHelper.GetDataOutputDirectory();

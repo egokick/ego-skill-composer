@@ -12,6 +12,39 @@ namespace skill_composer.Helper
     {
         private static string _skillComposerDirectory;
 
+        /// <summary>
+        /// Returns the root directory for the twilio-core project.
+        /// </summary>
+        /// <returns></returns>
+        public static string GetRootDirectory()
+        {
+            if (!string.IsNullOrEmpty(_skillComposerDirectory)) return _skillComposerDirectory;
+
+            var path = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+
+            // Check if this directory contains features and config folder, if it doesn't go up a directory and look again
+            var programExists = File.Exists(Path.Combine(path, "Program.cs")) && !path.ToLower().Contains("test");
+
+            if (programExists)
+            {
+                _skillComposerDirectory = path;
+                return _skillComposerDirectory;
+            }
+            var dir = Directory.GetParent(path).FullName;
+
+            for (int i = 0; i < 15; i++)
+            {
+                programExists = File.Exists(Path.Combine(dir, "Program.cs")) && !dir.ToLower().Contains("test");
+                if (programExists)
+                {
+                    _skillComposerDirectory = dir;
+                    return _skillComposerDirectory;
+                }
+                dir = Directory.GetParent(dir).FullName;
+            }
+            throw new Exception("Failed to find root folder \"skill-composer\", the root folder must contain a 'Program.cs' file");
+        }
+
         public static string GetDataInputFilePath()
         {
             var rootDirectory = GetRootDirectory();
@@ -92,40 +125,7 @@ namespace skill_composer.Helper
             return dataOutputPath;
         }
 
-        /// <summary>
-        /// Returns the root directory for the twilio-core project.
-        /// </summary>
-        /// <returns></returns>
-        public static string GetRootDirectory()
-        {
-            if (!string.IsNullOrEmpty(_skillComposerDirectory)) return _skillComposerDirectory;
-
-            var path = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-
-            // Check if this directory contains features and config folder, if it doesn't go up a directory and look again
-            var programExists = File.Exists(Path.Combine(path, "Program.cs")) && !path.ToLower().Contains("test");
-            
-            if (programExists)
-            {
-                _skillComposerDirectory = path;
-                return _skillComposerDirectory;
-            }
-            var dir = Directory.GetParent(path).FullName;
-
-            for (int i = 0; i < 15; i++)
-            {
-                programExists = File.Exists(Path.Combine(dir, "Program.cs")) && !dir.ToLower().Contains("test"); 
-                if (programExists)
-                {
-                    _skillComposerDirectory = dir;
-                    return _skillComposerDirectory;
-                }
-                dir = Directory.GetParent(dir).FullName;
-            }
-            throw new Exception("Failed to find root folder \"skill-composer\", the root folder must contain a 'Program.cs' file");
-        }
-
-        public static string GetSkillFile()
+        public static string GetSkillFilePath()
         {
             var skillFilePath = GetRootDirectory();
             skillFilePath = Path.Combine(skillFilePath, "skills.json");
@@ -308,7 +308,7 @@ namespace skill_composer.Helper
 
         public static void WriteSkillToFile(Skill selectedSkill)
         {
-            if (!selectedSkill.AppendFileLogging)
+            if (selectedSkill.AppendFileLogging is null || selectedSkill.AppendFileLogging == false)
             {
                 // Write output to a new file
                 var filePath = GetNewFilePathForSkill(selectedSkill.SkillName);

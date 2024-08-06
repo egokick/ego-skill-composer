@@ -10,7 +10,7 @@ namespace skill_composer
     internal class Program
     {
         public static Settings _settings = new Settings();
-        public static ApiHandler api;
+        public static ApiHandler api = null;
 
         static void Main(string[] args)
         {
@@ -18,11 +18,11 @@ namespace skill_composer
 
             _settings = SettingsHelper.Load();
 
-            api = new ApiHandler(_settings);
+            api = new ApiHandler();
 
             while (true)
             {
-                var skillFilePath = FilePathHelper.GetSkillFile();
+                var skillFilePath = FilePathHelper.GetSkillFilePath();
 
                 var skillsJson = File.ReadAllText(skillFilePath);
 
@@ -30,19 +30,21 @@ namespace skill_composer
 
                 PrintHelper.PrintIntroduction();
 
-                var selectedSkill = PrintHelper.SelectSkill(skillSet);
+                var skill = PrintHelper.SelectSkill(skillSet);
 
-                AISkillGeneration(selectedSkill);                             
+                ProcessSkill(skill);                             
             }
         }
 
-        public static void AISkillGeneration(Skill skillTemplate)
+        public static void ProcessSkill(Skill skill)
         {
-            Skill selectedSkill = new Skill() { RepeatCount = skillTemplate.RepeatCount };            
+            if (api is null) api = new ApiHandler();
+
+            Skill selectedSkill = new Skill() { RepeatCount = skill.RepeatCount };            
 
             while (true)
             {
-                selectedSkill = SetUserResponseFromPreviousIteration(selectedSkill, skillTemplate);
+                selectedSkill = SetUserResponseFromPreviousIteration(selectedSkill, skill);
                 if(selectedSkill.RepeatCount != -1) selectedSkill.RepeatCount--;
 
                 for (int i = 0; i < selectedSkill.Tasks.Count; i++)
@@ -60,11 +62,11 @@ namespace skill_composer
                         task.Output += ex.Message;
                         var defaultColor = Console.ForegroundColor; 
                         Console.ForegroundColor = ConsoleColor.Red; 
-                        Console.WriteLine($"Exception: {ex.Message}"); 
+                        Console.WriteLine($"Exception: {ex.Message}{ex.StackTrace}"); 
                         Console.ForegroundColor = defaultColor;
                     }
 
-                    if (task.HaltProcessing)
+                    if (task.HaltProcessing is not null && task.HaltProcessing == true)
                     {
                         selectedSkill.RepeatCount = 0;
                         break;
@@ -73,7 +75,7 @@ namespace skill_composer
                     PrintHelper.PrintTaskOutput(task);
                 }
 
-                if (!selectedSkill.DisableFileLogging) FilePathHelper.WriteSkillToFile(selectedSkill);
+                if (selectedSkill.DisableFileLogging is null || selectedSkill.DisableFileLogging == false) FilePathHelper.WriteSkillToFile(selectedSkill);
                 
                 if (selectedSkill.RepeatCount == 0) break;
             }
@@ -106,7 +108,7 @@ namespace skill_composer
                 {
                     var action = SpecialActionRegistry.GetAction(actionName.Trim());
 
-                    task = await action.Execute(task, selectedSkill, _settings);
+                    task = await action.Execute(task, selectedSkill);
                 }
             }
 
@@ -142,7 +144,11 @@ namespace skill_composer
                         Output = output, // Updated based on the Mode
                         Mode = t.Mode,
                         SpecialAction = t.SpecialAction,
-                        FilePath = t.FilePath
+                        FilePath = t.FilePath,
+                        PrintOutput = t.PrintOutput, 
+                        AiResponseShared = t.AiResponseShared,
+                        UserResponseShared = t.UserResponseShared,
+                        cancellationToken = t.cancellationToken                       
                     };
                 }).ToList()
             };
@@ -189,6 +195,7 @@ namespace skill_composer
             var outputRegex = new Regex(@"\{\{Output\[(\d+)\]\}\}");
             var filePathRegex = new Regex(@"\{\{FilePath\[(\d+)\]\}\}");
             var inputRegex = new Regex(@"\{\{Input\[(\d+)\]\}\}");
+            var dateRegex = new Regex(@"\{\{Date\}\}");
 
             if (!string.IsNullOrEmpty(task.Input))
             {
@@ -231,7 +238,10 @@ namespace skill_composer
                     {
                         return "";
                     }
-                });
+                }); 
+
+                // Add Date replacement
+                task.Input = dateRegex.Replace(task.Input, DateTime.Now.ToString("yyyy-MM-dd")); 
             }
 
             if (!string.IsNullOrEmpty(task.FilePath))

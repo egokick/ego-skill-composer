@@ -1,28 +1,22 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace skill_composer.Helper
+﻿namespace skill_composer.Helper
 {
     /// <summary>
     /// Provides utility methods for logging messages to various log files.
     /// </summary>
     public static class LogHelper
     {
-        private static readonly BlockingCollection<LogItem> LogQueue = new BlockingCollection<LogItem>();
-        private static readonly string LogFilePath = Path.Combine(FilePathHelper.GetRootDirectory(), "logCombined.txt");
-        private static Task loggingTask;
-        private static CancellationTokenSource cancellationTokenSource;
+        //private static readonly BlockingCollection<LogItem> LogQueue = new BlockingCollection<LogItem>();
+        //private static readonly string LogFilePath = Path.Combine(FilePathHelper.GetRootDirectory(), "logCombined.txt");
+        //private static Task loggingTask;
+        //private static CancellationTokenSource cancellationTokenSource;
 
         /// <summary>
         /// Initialises the log helper class.
         /// </summary>
         static LogHelper()
         {
-            cancellationTokenSource = new CancellationTokenSource();
-            loggingTask = Task.Run(() => ProcessLogQueue(cancellationTokenSource.Token));
+            //cancellationTokenSource = new CancellationTokenSource();
+            //loggingTask = Task.Run(() => ProcessLogQueue(cancellationTokenSource.Token));
         }
 
         /// <summary>
@@ -32,22 +26,24 @@ namespace skill_composer.Helper
         /// <param name="logType">The type of log.</param>
         public static void Log(string message, LogType logType = LogType.General)
         {
-            var serviceTypeLogPath = Path.Combine(FilePathHelper.GetRootDirectory(), $"log{logType}.txt");
+            Console.WriteLine($"{logType} {message}");
 
-            if (logType != LogType.Debug && logType != LogType.TwilioWebsocket && logType != LogType.AssemblyAIWebsocket)
-            {
-                Console.WriteLine($"{logType} {message}");
-            }
+            //var serviceTypeLogPath = Path.Combine(FilePathHelper.GetRootDirectory(), $"log{logType}.txt");
 
-            message = message.TrimEnd() + Environment.NewLine; // Ensure message ends with a newline
+            //if (logType != LogType.Debug && logType != LogType.TwilioWebsocket && logType != LogType.AssemblyAIWebsocket)
+            //{
+            //    Console.WriteLine($"{logType} {message}");
+            //}
 
-            LogQueue.Add(new LogItem { FilePath = serviceTypeLogPath, Message = message });
+            //message = message.TrimEnd() + Environment.NewLine; // Ensure message ends with a newline
 
-            if (logType != LogType.Debug && logType != LogType.TwilioWebsocket && logType != LogType.AssemblyAIWebsocket)
-            {
-                // combined logging
-                LogQueue.Add(new LogItem { FilePath = LogFilePath, Message = message });
-            }
+            //LogQueue.Add(new LogItem { FilePath = serviceTypeLogPath, Message = message });
+
+            //if (logType != LogType.Debug && logType != LogType.TwilioWebsocket && logType != LogType.AssemblyAIWebsocket)
+            //{
+            //    // combined logging
+            //    LogQueue.Add(new LogItem { FilePath = LogFilePath, Message = message });
+            //}
         }
 
         /// <summary>
@@ -66,9 +62,9 @@ namespace skill_composer.Helper
         /// </summary>
         public static void StopLogging()
         {
-            cancellationTokenSource.Cancel();
-            LogQueue.CompleteAdding();
-            loggingTask.Wait();
+            //cancellationTokenSource.Cancel();
+            //LogQueue.CompleteAdding();
+            //loggingTask.Wait();
         }
 
         /// <summary>
@@ -83,42 +79,42 @@ namespace skill_composer.Helper
             return (ts, end);
         }
 
-        private static void ProcessLogQueue(CancellationToken cancellationToken)
-        {
-            foreach (var logItem in LogQueue.GetConsumingEnumerable(cancellationToken))
-            {
-                TryAppendTextWithRetry(logItem.FilePath, logItem.Message);
-            }
-        }
+        //private static void ProcessLogQueue(CancellationToken cancellationToken)
+        //{
+        //    foreach (var logItem in LogQueue.GetConsumingEnumerable(cancellationToken))
+        //    {
+        //        TryAppendTextWithRetry(logItem.FilePath, logItem.Message);
+        //    }
+        //}
 
-        private static void TryAppendTextWithRetry(string filePath, string message, int retryInterval = 10,
-            int maxAttempts = 10)
-        {
-            for (int attempts = 0; attempts < maxAttempts; attempts++)
-            {
-                try
-                {
-                    File.AppendAllText(filePath, message);
-                    break; // Success, exit the loop
-                }
-                catch (IOException ex) when ((ex.HResult & 0x0000FFFF) == 32) // ERROR_SHARING_VIOLATION
-                {
-                    if (attempts < maxAttempts - 1)
-                    {
-                        Thread.Sleep(retryInterval);
-                    }
-                    else
-                    {
-                        Console.WriteLine($"Unable to write to log file after {maxAttempts} attempts: {ex.Message}");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"An unexpected error occurred while writing to the log file: {ex.Message}");
-                    break;
-                }
-            }
-        }
+        //private static void TryAppendTextWithRetry(string filePath, string message, int retryInterval = 10,
+        //    int maxAttempts = 10)
+        //{
+        //    for (int attempts = 0; attempts < maxAttempts; attempts++)
+        //    {
+        //        try
+        //        {
+        //            //File.AppendAllText(filePath, message);
+        //            break; // Success, exit the loop
+        //        }
+        //        catch (IOException ex) when ((ex.HResult & 0x0000FFFF) == 32) // ERROR_SHARING_VIOLATION
+        //        {
+        //            if (attempts < maxAttempts - 1)
+        //            {
+        //                Thread.Sleep(retryInterval);
+        //            }
+        //            else
+        //            {
+        //                Console.WriteLine($"Unable to write to log file after {maxAttempts} attempts: {ex.Message}");
+        //            }
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            Console.WriteLine($"An unexpected error occurred while writing to the log file: {ex.Message}");
+        //            break;
+        //        }
+        //    }
+        //}
 
         private class LogItem
         {

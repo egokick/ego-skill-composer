@@ -22,7 +22,7 @@ namespace skill_composer.SpecialActions
     { 
         private static DateTime? _rateLimitResetTime = null;
 
-        public async Task<Models.Task> Execute(Models.Task task, Skill selectedSkill, Settings settings)
+        public async Task<Models.Task> Execute(Models.Task task, Skill selectedSkill)
         {
             var voiceModel = task.SpecialAction.Replace("TextToSpeech", "");
             var dataInputDirectory = FilePathHelper.GetDataInputDirectory();
@@ -58,7 +58,7 @@ namespace skill_composer.SpecialActions
             // Convert each chunk to audio and save it.
             foreach (var chunk in chunks)
             {
-                var audioBytes = ConvertTextToAudio(chunk, voiceModel, settings).Result; // Assuming this is an async method
+                var audioBytes = ConvertTextToAudio(chunk, voiceModel, Program._settings).Result; // Assuming this is an async method
 
                 var outputFilePath = Path.Combine(outputDirectory, $"audio_{++fileIndex}.mp3");
                 File.WriteAllBytes(outputFilePath, audioBytes);

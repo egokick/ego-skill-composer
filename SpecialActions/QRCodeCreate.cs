@@ -20,7 +20,7 @@ namespace skill_composer.SpecialActions
             return "mailto:egokick@gmail.com?subject=you are a winrar&body=you did extremely well on the test!";
         }
 
-        public async Task<Models.Task> Execute(Models.Task task, Skill selectedSkill, Settings settings)
+        public async Task<Models.Task> Execute(Models.Task task, Skill selectedSkill)
         {
             if (string.IsNullOrEmpty(task.Input))
             {
