@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Skill-Composer</title>
+    <script>
+        let jsonData;
+        let expandedState = {};
+        let activeTextarea = null;
+
+        function loadJSON(callback) {
+            const xhr = new XMLHttpRequest();
+            xhr.overrideMimeType("application/json");
+            xhr.open('GET', 'skills.json', true); // Change 'skills.json' to your JSON file path
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    callback(JSON.parse(xhr.responseText));
+                }
+            };
+            xhr.send(null);
+        }
+
+        function saveJSON(data, callback) {
+            const xhr = new XMLHttpRequest();
+            xhr.open("POST", "/save_json", true);
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    callback(xhr.responseText);
+                }
+            };
+            xhr.send(JSON.stringify(data));
+        }
+
+function displayTasks() {
+    const taskList = document.getElementById('taskList');
+    taskList.innerHTML = '';
+    jsonData.Skills.forEach((skill, skillIndex) => {
+        const skillDiv = document.createElement('div');
+        skillDiv.classList.add('skill');
+        skillDiv.innerHTML = `
+            <div class="skill-header">
+                <h3>Skill: <input type="text" value="${skill.SkillName}" onchange="updateSkill(${skillIndex}, 'SkillName', this.value)"></h3>
+                <div class="skill-buttons">
+                    <button id="toggle-details-button-${skillIndex}" class="toggle-button" onclick="toggleSkillDetails(${skillIndex})">+</button>
+                    <button class="delete-skill-button" onclick="confirmDeleteSkill(${skillIndex})">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+                            <path fill="none" d="M0 0h24v24H0z"/>
+                            <path fill="red" d="M5 4h14v2H5V4zm2 2h10v14H7V6zm3 2v10h2V8h-2z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div id="skill-details-${skillIndex}" style="display: none;">
+                <p>RepeatCount: <input type="number" value="${skill.RepeatCount}" onchange="updateSkill(${skillIndex}, 'RepeatCount', this.value)"></p>
+                <p>Temperature: <input type="number" step="0.1" value="${skill.Temperature}" onchange="updateSkill(${skillIndex}, 'Temperature', this.value)"></p>
+            </div>
+            <p>Description: <textarea onchange="updateSkill(${skillIndex}, 'Description', this.value)">${skill.Description}</textarea></p>
+            <button id="toggle-tasks-button-${skillIndex}" class="toggle-button" onclick="toggleTasks(${skillIndex})">${expandedState[skillIndex] ? '-' : '+'}</button>
+        `;
+
+        const taskContainer = document.createElement('div');
+        taskContainer.classList.add('taskContainer');
+        taskContainer.setAttribute('data-skill-index', skillIndex);
+        taskContainer.style.display = expandedState[skillIndex] ? 'block' : 'none';
+
+        skill.Tasks.forEach((task, taskIndex) => {
+            const taskDiv = document.createElement('div');
+            taskDiv.classList.add('task');
+            taskDiv.setAttribute('draggable', 'true');
+            taskDiv.setAttribute('data-task-index', taskIndex);
+            taskDiv.innerHTML = `                       
+                <label>Number: <input type="number" value="${task.Number}" onchange="updateTask(${skillIndex}, ${taskIndex}, 'Number', this.value)"></label>
+                <label>Name: <input type="text" value="${task.Name}" onchange="updateTask(${skillIndex}, ${taskIndex}, 'Name', this.value)"></label>
+                <label>Mode: 
+                    <select onchange="updateTask(${skillIndex}, ${taskIndex}, 'Mode', this.value)">
+                        <option value="Internal" ${task.Mode === 'Internal' ? 'selected' : ''}>Internal</option>
+                        <option value="AI" ${task.Mode === 'AI' ? 'selected' : ''}>AI</option>
+                        <option value="User" ${task.Mode === 'User' ? 'selected' : ''}>User</option>
+                    </select>
+                </label>
+                <label>Input: <textarea onclick="showInsertButtons(${skillIndex}, ${taskIndex}, this)" onchange="updateTask(${skillIndex}, ${taskIndex}, 'Input', this.value)">${task.Input}</textarea></label>
+                <label>SpecialAction: 
+                    <select onchange="updateTask(${skillIndex}, ${taskIndex}, 'SpecialAction', this.value)">
+                        <option value="" ${task.SpecialAction === '' ? 'selected' : ''}></option>
+                        <option value="BookingAdd" ${task.SpecialAction === 'BookingAdd' ? 'selected' : ''}>BookingAdd</option>
+                        <option value="ConversationHangUp" ${task.SpecialAction === 'ConversationHangUp' ? 'selected' : ''}>ConversationHangUp</option>
+                        <option value="ConversationModeStream" ${task.SpecialAction === 'ConversationModeStream' ? 'selected' : ''}>ConversationModeStream</option>
+                        <option value="DatabaseGetBusinessKnowledgeFromBusinessIdAndCustomerPhoneNumber" ${task.SpecialAction === 'DatabaseGetBusinessKnowledgeFromBusinessIdAndCustomerPhoneNumber' ? 'selected' : ''}>DatabaseGetBusinessKnowledgeFromBusinessIdAndCustomerPhoneNumber</option>
+                        <option value="DatabaseSaveConversation" ${task.SpecialAction === 'DatabaseSaveConversation' ? 'selected' : ''}>DatabaseSaveConversation</option>
+                        <option value="Fnol1SaveIncident" ${task.SpecialAction === 'Fnol1SaveIncident' ? 'selected' : ''}>Fnol1SaveIncident</option>
+                        <option value="Fnol2SaveClaim" ${task.SpecialAction === 'Fnol2SaveClaim' ? 'selected' : ''}>Fnol2SaveClaim</option>
+                        <option value="TwilioGetCallStreamInformation" ${task.SpecialAction === 'TwilioGetCallStreamInformation' ? 'selected' : ''}>TwilioGetCallStreamInformation</option>
+                        <option value="ConcatenateAllInputFiles" ${task.SpecialAction === 'ConcatenateAllInputFiles' ? 'selected' : ''}>ConcatenateAllInputFiles</option>
+                        <option value="ConcatenateFilesByLabel" ${task.SpecialAction === 'ConcatenateFilesByLabel' ? 'selected' : ''}>ConcatenateFilesByLabel</option>
+                        <option value="ConversationMode" ${task.SpecialAction === 'ConversationMode' ? 'selected' : ''}>ConversationMode</option>
+                        <option value="CopyInputToOutput" ${task.SpecialAction === 'CopyInputToOutput' ? 'selected' : ''}>CopyInputToOutput</option>
+                        <option value="DatabaseRunQuery" ${task.SpecialAction === 'DatabaseRunQuery' ? 'selected' : ''}>DatabaseRunQuery</option>
+                        <option value="DelayInSeconds" ${task.SpecialAction === 'DelayInSeconds' ? 'selected' : ''}>DelayInSeconds</option>
+                        <option value="EmailDownloadAllFromFolder" ${task.SpecialAction === 'EmailDownloadAllFromFolder' ? 'selected' : ''}>EmailDownloadAllFromFolder</option>
+                        <option value="EmailDownloadFromFolder" ${task.SpecialAction === 'EmailDownloadFromFolder' ? 'selected' : ''}>EmailDownloadFromFolder</option>
+                        <option value="EmailSend" ${task.SpecialAction === 'EmailSend' ? 'selected' : ''}>EmailSend</option>
+                        <option value="FileConvertHeicToJpg" ${task.SpecialAction === 'FileConvertHeicToJpg' ? 'selected' : ''}>FileConvertHeicToJpg</option>
+                        <option value="FileConvertHeicToPng" ${task.SpecialAction === 'FileConvertHeicToPng' ? 'selected' : ''}>FileConvertHeicToPng</option>
+                        <option value="FileGetPath" ${task.SpecialAction === 'FileGetPath' ? 'selected' : ''}>FileGetPath</option>
+                        <option value="FileGetPathByFileType" ${task.SpecialAction === 'FileGetPathByFileType' ? 'selected' : ''}>FileGetPathByFileType</option>
+                        <option value="FileMoveToOutput" ${task.SpecialAction === 'FileMoveToOutput' ? 'selected' : ''}>FileMoveToOutput</option>
+                        <option value="FileRead" ${task.SpecialAction === 'FileRead' ? 'selected' : ''}>FileRead</option>
+                        <option value="FileRotateImage" ${task.SpecialAction === 'FileRotateImage' ? 'selected' : ''}>FileRotateImage</option>
+                        <option value="FileS3Upload" ${task.SpecialAction === 'FileS3Upload' ? 'selected' : ''}>FileS3Upload</option>
+                        <option value="FilesMoveToInputFolder" ${task.SpecialAction === 'FilesMoveToInputFolder' ? 'selected' : ''}>FilesMoveToInputFolder</option>
+                        <option value="FilesMoveToInputFolderByFileType" ${task.SpecialAction === 'FilesMoveToInputFolderByFileType' ? 'selected' : ''}>FilesMoveToInputFolderByFileType</option>
+                        <option value="FilesMoveToOutputFolder" ${task.SpecialAction === 'FilesMoveToOutputFolder' ? 'selected' : ''}>FilesMoveToOutputFolder</option>
+                        <option value="FilesPathGetByDirectory" ${task.SpecialAction === 'FilesPathGetByDirectory' ? 'selected' : ''}>FilesPathGetByDirectory</option>
+                        <option value="FilesRead" ${task.SpecialAction === 'FilesRead' ? 'selected' : ''}>FilesRead</option>
+                        <option value="FileWriteInput" ${task.SpecialAction === 'FileWriteInput' ? 'selected' : ''}>FileWriteInput</option>
+                        <option value="FileWriteOutput" ${task.SpecialAction === 'FileWriteOutput' ? 'selected' : ''}>FileWriteOutput</option>
+                        <option value="FileWriteSplitOutput" ${task.SpecialAction === 'FileWriteSplitOutput' ? 'selected' : ''}>FileWriteSplitOutput</option>
+                        <option value="GetUniqueLabelsFromInputFiles" ${task.SpecialAction === 'GetUniqueLabelsFromInputFiles' ? 'selected' : ''}>GetUniqueLabelsFromInputFiles</option>
+                        <option value="ISpecialAction" ${task.SpecialAction === 'ISpecialAction' ? 'selected' : ''}>ISpecialAction</option>
+                        <option value="QRCodeCreate" ${task.SpecialAction === 'QRCodeCreate' ? 'selected' : ''}>QRCodeCreate</option>
+                        <option value="RenameFile" ${task.SpecialAction === 'RenameFile' ? 'selected' : ''}>RenameFile</option>
+                        <option value="SkillAdd" ${task.SpecialAction === 'SkillAdd' ? 'selected' : ''}>SkillAdd</option>
+                        <option value="SkillRun" ${task.SpecialAction === 'SkillRun' ? 'selected' : ''}>SkillRun</option>
+                        <option value="SpeechToTextFromFile" ${task.SpecialAction === 'SpeechToTextFromFile' ? 'selected' : ''}>SpeechToTextFromFile</option>
+                        <option value="SpeechToTextFromMicrophone" ${task.SpecialAction === 'SpeechToTextFromMicrophone' ? 'selected' : ''}>SpeechToTextFromMicrophone</option>
+                        <option value="SpeechToTextRealTimeFromSpeaker" ${task.SpecialAction === 'SpeechToTextRealTimeFromSpeaker' ? 'selected' : ''}>SpeechToTextRealTimeFromSpeaker</option>
+                        <option value="TextToSpeech" ${task.SpecialAction === 'TextToSpeech' ? 'selected' : ''}>TextToSpeech</option>
+                        <option value="WebUrlDownload" ${task.SpecialAction === 'WebUrlDownload' ? 'selected' : ''}>WebUrlDownload</option>
+                        <option value="ConversationSayOneThing" ${task.SpecialAction === 'ConversationSayOneThing' ? 'selected' : ''}>ConversationSayOneThing</option>
+                    </select>
+                </label>
+                <button onclick="insertTask(${skillIndex}, ${taskIndex}, ${true})">Insert New Task</button>
+                <button onclick="deleteTask(${skillIndex}, ${taskIndex}, ${true})">Delete Task</button>
+            `;
+            taskDiv.addEventListener('dragstart', handleDragStart);
+            taskDiv.addEventListener('dragover', handleDragOver);
+            taskDiv.addEventListener('drop', handleDrop);
+            taskDiv.addEventListener('dragend', handleDragEnd);
+            taskContainer.appendChild(taskDiv);
+        });
+
+        skillDiv.appendChild(taskContainer);
+        taskList.appendChild(skillDiv);
+    });
+}
+
+function toggleTasks(skillIndex, forceOpen = false) {
+    const taskContainer = document.querySelector(`[data-skill-index="${skillIndex}"]`);
+    const button = document.getElementById(`toggle-tasks-button-${skillIndex}`);
+    if (taskContainer) {
+        if (taskContainer.style.display === 'none' || forceOpen) {
+            taskContainer.style.display = 'block';
+            button.textContent = '-';
+            expandedState[skillIndex] = true;
+        } else {
+            taskContainer.style.display = 'none';
+            button.textContent = '+';
+            expandedState[skillIndex] = false;
+        }
+    }
+}
+
+
+        function updateSkill(skillIndex, field, value) {
+            jsonData.Skills[skillIndex][field] = value;
+            saveJSON(jsonData, (response) => console.log(response));
+        }
+
+        function updateTask(skillIndex, taskIndex, field, value) {
+            jsonData.Skills[skillIndex].Tasks[taskIndex][field] = value;
+            saveJSON(jsonData, (response) => console.log(response));
+        }
+
+        function insertTask(skillIndex, taskIndex, keepOpen = false) {
+            const newTaskNumber = jsonData.Skills[skillIndex].Tasks[taskIndex].Number + 1;
+            const newTask = {
+                "Number": newTaskNumber,
+                "Name": "New_Task",
+                "Mode": "Internal",
+                "Input": "",
+                "SpecialAction": ""
+            };
+
+            jsonData.Skills[skillIndex].Tasks.splice(taskIndex + 1, 0, newTask);
+
+            jsonData.Skills[skillIndex].Tasks.forEach((task, index) => {
+                task.Number = index + 1;
+                task.Input = task.Input.replace(/{{Output\[(\d+)\]}}/g, (match, p1) => {
+                    const num = parseInt(p1);
+                    return `{{Output[${num >= newTaskNumber ? num + 1 : num}]}}`;
+                });
+            });
+
+            displayTasks();
+            if (keepOpen) {
+                toggleTasks(skillIndex, true);
+            }
+            saveJSON(jsonData, (response) => console.log(response));
+        }
+
+        function deleteTask(skillIndex, taskIndex, keepOpen = false) {
+            jsonData.Skills[skillIndex].Tasks.splice(taskIndex, 1);
+
+            jsonData.Skills[skillIndex].Tasks.forEach((task, index) => {
+                task.Number = index + 1;
+                task.Input = task.Input.replace(/{{Output\[(\d+)\]}}/g, (match, p1) => {
+                    const num = parseInt(p1);
+                    return `{{Output[${num >= taskIndex + 1 ? num - 1 : num}]}}`;
+                });
+            });
+
+            displayTasks();
+            if (keepOpen) {
+                toggleTasks(skillIndex, true);
+            }
+            saveJSON(jsonData, (response) => console.log(response));
+        }
+
+        function addNewSkill() {
+            const newSkill = {
+                "SkillName": "New_Skill",
+                "Description": "Description of the new skill",
+                "RepeatCount": 1,
+                "Temperature": 0.5,
+                "Tasks": [
+                    {
+                        "Number": 1,
+                        "Name": "Initial_Task",
+                        "Mode": "Internal",
+                        "Input": "",
+                        "SpecialAction": ""
+                    }
+                ]
+            };
+
+            jsonData.Skills.push(newSkill);
+            displayTasks();
+            toggleTasks(jsonData.Skills.length - 1, true);
+            saveJSON(jsonData, (response) => console.log(response));
+        }
+
+        function confirmDeleteSkill(skillIndex) {
+            const confirmation = confirm("Are you sure you want to delete this skill?");
+            if (confirmation) {
+                deleteSkill(skillIndex);
+            }
+        }
+
+        function deleteSkill(skillIndex) {
+            jsonData.Skills.splice(skillIndex, 1);
+            displayTasks();
+            saveJSON(jsonData, (response) => console.log(response));
+        }
+
+        let draggedTask = null;
+
+        function handleDragStart(e) {
+            draggedTask = e.target;
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', e.target.outerHTML);
+            e.target.classList.add('dragging');
+        }
+
+        function handleDragOver(e) {
+            if (e.preventDefault) {
+                e.preventDefault();
+            }
+            e.dataTransfer.dropEffect = 'move';
+            return false;
+        }
+
+        function handleDrop(e) {
+            if (e.stopPropagation) {
+                e.stopPropagation();
+            }
+
+            if (draggedTask !== this) {
+                const skillIndex = this.parentElement.getAttribute('data-skill-index');
+                const fromTaskIndex = parseInt(draggedTask.getAttribute('data-task-index'));
+                const toTaskIndex = parseInt(this.getAttribute('data-task-index'));
+
+                const fromTask = jsonData.Skills[skillIndex].Tasks.splice(fromTaskIndex, 1)[0];
+                jsonData.Skills[skillIndex].Tasks.splice(toTaskIndex, 0, fromTask);
+
+                jsonData.Skills[skillIndex].Tasks.forEach((task, index) => {
+                    task.Number = index + 1;
+                });
+
+                // Directly manipulate DOM to avoid full re-render
+                if (fromTaskIndex < toTaskIndex) {
+                    this.parentElement.insertBefore(draggedTask, this.nextSibling);
+                } else {
+                    this.parentElement.insertBefore(draggedTask, this);
+                }
+
+                // Remove the dragging class from the dragged task
+                draggedTask.classList.remove('dragging');
+
+                // Update the task indices in the DOM
+                const taskDivs = this.parentElement.querySelectorAll('.task');
+                taskDivs.forEach((taskDiv, index) => {
+                    taskDiv.setAttribute('data-task-index', index);
+                });
+
+                saveJSON(jsonData, (response) => console.log(response));
+            }
+            return false;
+        }
+
+        function handleDragEnd(e) {
+            if (draggedTask) {
+                draggedTask.classList.remove('dragging');
+            }
+        }
+
+        function restoreExpandedState() {
+            Object.keys(expandedState).forEach(skillIndex => {
+                const taskContainer = document.querySelector(`[data-skill-index="${skillIndex}"]`);
+                if (expandedState[skillIndex]) {
+                    taskContainer.style.display = 'block';
+                } else {
+                    taskContainer.style.display = 'none';
+                }
+            });
+        }
+		
+function showInsertButtons(skillIndex, taskIndex, textarea) {
+    activeTextarea = textarea;
+    const existingButtonsContainer = document.getElementById('insertButtonsContainer');
+    if (existingButtonsContainer) {
+        existingButtonsContainer.remove();
+    }
+
+    const buttonsContainer = document.createElement('div');
+    buttonsContainer.id = 'insertButtonsContainer';
+
+    // Add the "Date" button
+    const dateButton = document.createElement('button');
+    dateButton.textContent = "Date";
+    dateButton.onclick = () => insertOutputAtCursor(textarea, `{{Date}}`);
+    buttonsContainer.appendChild(dateButton);
+
+    for (let i = 0; i < taskIndex; i++) {
+        const button = document.createElement('button');
+        button.textContent = `Output${i + 1}`;
+        button.onclick = () => insertOutputAtCursor(textarea, `{{Output[${i + 1}]}}`);
+        buttonsContainer.appendChild(button);
+    }
+
+    // Insert the buttons container immediately after the label element
+    textarea.parentElement.parentElement.insertBefore(buttonsContainer, textarea.parentElement.nextSibling);
+}
+
+
+
+
+        function insertOutputAtCursor(textarea, text) {
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const before = textarea.value.substring(0, start);
+            const after = textarea.value.substring(end);
+            textarea.value = before + text + after;
+            textarea.selectionStart = textarea.selectionEnd = start + text.length;
+            textarea.focus();
+            textarea.dispatchEvent(new Event('change'));
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadJSON((data) => {
+                jsonData = data;
+                displayTasks();
+                restoreExpandedState();
+            });
+
+            document.addEventListener('click', (e) => {
+                if (activeTextarea && !e.target.closest('.task') && !e.target.closest('#insertButtonsContainer')) {
+                    const existingButtonsContainer = document.getElementById('insertButtonsContainer');
+                    if (existingButtonsContainer) {
+                        existingButtonsContainer.remove();
+                    }
+                    activeTextarea = null;
+                }
+            });
+        });
+		
+		function toggleSkillDetails(skillIndex) {
+    const detailsDiv = document.querySelector(`#skill-details-${skillIndex}`);
+    const button = document.querySelector(`#toggle-details-button-${skillIndex}`);
+    if (detailsDiv.style.display === 'none') {
+        detailsDiv.style.display = 'block';
+        button.textContent = '-';
+    } else {
+        detailsDiv.style.display = 'none';
+        button.textContent = '+';
+    }
+}
+
+
+    </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #101010; /* Dark Gray */
+        }
+
+        h1 {
+            text-align: center;
+            color: #BADF99; /* Light Green */
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        #addSkillButton {
+            display: block;
+            margin: 20px auto;
+            background-color: #6798A9; /* Light Blue */
+            color: #FFF; /* White */
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1.2em; /* Increase the font size */
+            transition: background-color 0.3s;
+        }
+
+        #addSkillButton:hover {
+            background-color: #3F3F3F; /* Dark Gray */
+        }
+
+        .skill {
+            border-radius: 8px;
+            background-color: #3F3F3F; /* Dark Gray */
+            padding: 7px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            color: #BADF99; /* Light Green */
+            position: relative;
+        }
+
+        .skill-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .skill h3 {
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+            color: #BADF99; /* Light Green */
+            margin: 0;
+        }
+
+        .skill h3 input[type="text"] {
+            flex: 1;
+            padding: 8px;
+            margin-left: 10px;
+            border-radius: 4px;
+            border: none;
+            background-color: #3F3F3F; /* Dark Gray */
+            color: #DCDCCC; /* Light Green */
+            font-size: 1.2em; /* Increase the font size */
+        }
+
+        .delete-skill-button {
+            background-color: transparent; /* Make background transparent */
+            border: none; /* Remove border */
+            cursor: pointer;
+            padding: 5px; /* Add some padding */
+            transition: background-color 0.3s;
+        }
+
+        .delete-skill-button:hover svg path {
+            fill: #cc0000; /* Change icon color on hover */
+        }
+
+        .delete-skill-button svg {
+            width: 24px; /* Adjust icon size */
+            height: 24px; /* Adjust icon size */
+        }
+
+        .skill p {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #BADF99; /* Light Green */
+        }
+
+        .skill p textarea {
+            flex: 1;
+            padding: 8px;
+            margin-left: 10px;
+            border-radius: 4px;
+            border: none;
+            background-color: #3F3F3F; /* Dark Gray */
+            color: #DCDCCC; /* Light Green */
+            width: calc(100% - 20px); /* Adjust the width */
+            overflow: auto; /* Enable scrolling */
+            resize: vertical; /* Enable manual resize vertically */
+            max-height: 200px; /* Set a maximum height */
+        }
+
+        .taskContainer {
+            border: 1px solid #6798A9; /* Light Blue */
+            border-radius: 8px;
+            background-color: #101010; /* Dark Gray */
+            padding: 10px;
+            margin-top: 10px;
+            color: #BADF99; /* Light Green */
+        }
+
+        .task {
+            border: 1px solid #6798A9; /* Light Blue */
+            border-radius: 8px;
+            background-color: #3F3F3F; /* Dark Gray */
+            padding: 10px;
+            margin: 5px 0;
+            cursor: move;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            color: #BADF99; /* Light Green */
+        }
+
+        .task h4 {
+            margin-top: 0;
+            color: #6798A9; /* Light Blue */
+        }
+
+        .task label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #BADF99; /* Light Green */
+        }
+
+        .task label input[type="text"],
+        .task label input[type="number"],
+        .task label select,
+        .task label textarea {
+            flex: 1;
+            padding: 8px;
+            margin-left: 10px;
+            border-radius: 4px;
+            border: none;
+            background-color: #3F3F3F; /* Dark Gray */
+            color: #DCDCCC; /* Light Green */
+        }
+
+        .skill input[type="text"],
+        .skill input[type="number"],
+        .skill textarea {
+            flex: 1;
+            padding: 8px;
+            margin-left: 10px;
+            border-radius: 4px;
+            border: none;
+            background-color: #3F3F3F; /* Dark Gray */
+            color: #DCDCCC; /* Light Green */
+            width: calc(100% - 20px); /* Adjust the width */
+        }
+.skill-buttons {
+    display: flex;
+    align-items: center;
+}
+.skill-buttons .toggle-button {
+    margin-right: 10px; /* Add some spacing between the buttons */
+}
+.skill-buttons .toggle-button {
+    margin-right: 10px; /* Add some spacing between the buttons */
+}
+
+.skill-buttons .delete-skill-button {
+    background-color: transparent; /* Make background transparent */
+    border: none; /* Remove border */
+    cursor: pointer;
+    padding: 5px; /* Add some padding */
+    transition: background-color 0.3s;
+}
+.skill-buttons .delete-skill-button:hover svg path {
+    fill: #cc0000; /* Change icon color on hover */
+}
+
+.skill-buttons .delete-skill-button svg {
+    width: 24px; /* Adjust icon size */
+    height: 24px; /* Adjust icon size */
+}
+        .task textarea {
+            width: 100%;
+            overflow: auto; /* Enable scrolling */
+            resize: vertical; /* Enable manual resize vertically */
+            max-height: 900px; /* Set a maximum height */
+            height: 120px; /* Set a specific height */
+        }
+
+        .skill textarea {
+            width: calc(100% - 20px); /* Adjust the width */
+            overflow: auto; /* Enable scrolling */
+            resize: vertical; /* Enable manual resize vertically */
+            max-height: 200px; /* Set a maximum height */
+        }
+
+        .task button {
+            background-color: #6798A9; /* Light Blue */
+            color: #FFF; /* White */
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .task button:hover {
+            background-color: #3F3F3F; /* Dark Gray */
+        }
+
+        .dragging {
+            opacity: 0.5;
+        }
+
+#insertButtonsContainer {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 10px; /* Add space between textarea and buttons */
+}
+
+#insertButtonsContainer button {
+    background-color: #6798A9; /* Light Blue */
+    color: #FFF; /* White */
+    padding: 5px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 5px; /* Add space between buttons */
+    transition: background-color 0.3s;
+}
+
+#insertButtonsContainer button:hover {
+    background-color: #3F3F3F; /* Dark Gray */
+}
+    </style>
+</head>
+<body>
+    <h1>Skill-Composer</h1>
+    <button id="addSkillButton" onclick="addNewSkill()">Add New Skill</button>
+    <div id="taskList"></div>
+</body>
+</html>
