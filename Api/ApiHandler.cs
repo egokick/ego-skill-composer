@@ -20,14 +20,14 @@ namespace skill_composer.Helper
                 };
             }
 
-            var apiUrl = Program._settings.AiUrl;
+            var apiUrl = Settings.AiUrl;
 
             //if (!string.IsNullOrEmpty(_settings.OpenAiApiVersion))
             //{
             //    apiUrl = apiUrl.AppendQueryParam("api-version", _settings.OpenAiApiVersion);
             //}
 
-            var _model = string.IsNullOrEmpty(skill?.OpenAiModel) ? Program._settings.OpenAiModel : skill?.OpenAiModel;
+            var _model = string.IsNullOrEmpty(skill?.OpenAiModel) ? Settings.OpenAiModel : skill?.OpenAiModel;
 
             var messages = new List<object>();
 
@@ -103,7 +103,7 @@ namespace skill_composer.Helper
                 var response = await retryPolicy.ExecuteAsync(() =>
                     apiUrl
                         .WithHeader("Content-Type", "application/json")
-                        .WithHeader("Authorization", $"Bearer {Program._settings.OpenAiKey}")
+                        .WithHeader("Authorization", $"Bearer {Settings.OpenAiKey}")
                         .WithHeader("use-case", "automated servicenow labelling that replaces 3 teams of people")
                         .WithTimeout(600) // Sets the timeout to 6 minutes
                         .PostJsonAsync(requestData)

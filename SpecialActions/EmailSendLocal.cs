@@ -1,14 +1,17 @@
-﻿using Azure.Identity;
-using Microsoft.Graph;
-using Microsoft.Graph.Authentication;
-using Microsoft.Graph.Models;
-using Microsoft.Graph.Users.Item.SendMail;
+﻿using Microsoft.Graph;
 using skill_composer.Models;
 using Task = System.Threading.Tasks.Task;
+using skill_composer.Helper;
+using Microsoft.Graph.Models;
 
 namespace skill_composer.SpecialActions
 {
-    public class EmailSend : ISpecialAction
+    /// <summary>
+    /// This will pop the browser for user outlook authentication. The emaill will be sent from the user that logs in. 
+    /// This is useful for automation because it only requires the user to auth once
+    /// all subsequente calls to this will automatically re use the authentication.
+    /// </summary>
+    public class EmailSendLocal : ISpecialAction
     {
         public async Task<Models.Task> Execute(Models.Task task, Skill selectedSkill)
         {
@@ -18,17 +21,18 @@ namespace skill_composer.SpecialActions
                 return task;
             }
 
-            var credential = new ClientSecretCredential(Settings.AzureTenantId, Settings.AzureClientId, Settings.AzureSecretId);
-            var graphClient = new GraphServiceClient(new AzureIdentityAuthenticationProvider(credential));
+            var interactiveBrowserCredential = AuthenticationHelper.GetInteractiveBrowserCredential(Settings.AzureClientId);
+
+            var graphClient = new GraphServiceClient(interactiveBrowserCredential);
 
             var emailLines = task.Input.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
-            var toEmailsString = emailLines.FirstOrDefault(line => line.StartsWith("to:"))?[3..]?.Trim()!;
-            var ccEmailsString = emailLines.FirstOrDefault(line => line.StartsWith("cc:"))?[3..]?.Trim()!;
-            var emailSubject = emailLines.FirstOrDefault(line => line.StartsWith("subject:"))?[8..]?.Trim()!;
-            var emailBody = emailLines.FirstOrDefault(line => line.StartsWith("body:"))?[5..]?.Trim()!;
+            string toEmailsString = emailLines.FirstOrDefault(line => line.StartsWith("to:"))?.Substring(3).Trim();
+            string ccEmailsString = emailLines.FirstOrDefault(line => line.StartsWith("cc:"))?.Substring(3).Trim();
+            string emailSubject = emailLines.FirstOrDefault(line => line.StartsWith("subject:"))?.Substring(8).Trim();
+            string emailBody = emailLines.FirstOrDefault(line => line.StartsWith("body:"))?.Substring(5).Trim();
 
-            if (string.IsNullOrEmpty(toEmailsString) || string.IsNullOrEmpty(emailSubject) || string.IsNullOrEmpty(emailBody))
+            if (toEmailsString == null || emailSubject == null || emailBody == null)
             {
                 Console.WriteLine("Missing required email fields in the input.");
                 return task;
@@ -65,7 +69,14 @@ namespace skill_composer.SpecialActions
 
         private async Task SendEmailAsync(GraphServiceClient graphClient, List<string> toEmails, List<string> ccEmails, string subject, string body)
         {
-            const string from = "mipmapper@digital-dreams.uk";
+            var me = await graphClient.Me.GetAsync();
+
+            var fromEmail = me.UserPrincipalName;
+
+            if (!string.IsNullOrEmpty(me.Mail))
+            {
+                fromEmail = me.Mail;
+            }
 
             var message = new Message
             {
@@ -79,7 +90,7 @@ namespace skill_composer.SpecialActions
                 {
                     EmailAddress = new EmailAddress
                     {
-                        Address = from
+                        Address = fromEmail
                     }
                 },
                 ToRecipients = toEmails.Select(email => new Recipient
@@ -98,13 +109,19 @@ namespace skill_composer.SpecialActions
                 }).ToList()
             };
 
-            var sendMailRequestBody = new SendMailPostRequestBody
+            var sendMailRequestBody = new Microsoft.Graph.Me.SendMail.SendMailPostRequestBody
             {
                 Message = message,
                 SaveToSentItems = true
             };
 
-            await graphClient.Users[from].SendMail.PostAsync(sendMailRequestBody);
+            var pathParameters = new Dictionary<string, object>
+            {
+                { "user-id", "me" } // "me" is automatically switched out for the authenticated user's email address.
+            };
+            var sendMailRequestBuilder = new Microsoft.Graph.Me.SendMail.SendMailRequestBuilder(pathParameters, graphClient.RequestAdapter);
+
+            await sendMailRequestBuilder.PostAsync(sendMailRequestBody);
 
             Console.WriteLine($"Email sent successfully to {string.Join(",", toEmails)}.");
         }

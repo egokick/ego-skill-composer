@@ -22,9 +22,9 @@ namespace skill_composer.Services
         /// Default constructor.
         /// </summary>
         /// <param name="sharedSettings"></param>
-        public DatabaseService(Settings sharedSettings)
+        public DatabaseService()
         {
-            _connection = sharedSettings.Databases.First().ConnectionString;
+            _connection = Settings.Databases.First().ConnectionString;
             _connectionNoCredentials = _connection;
         }
         /// <inheritdoc />

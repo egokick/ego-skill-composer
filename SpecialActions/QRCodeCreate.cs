@@ -1,10 +1,6 @@
 ﻿using QRCoder;
 using skill_composer.Models;
 using skill_composer.Helper;
-using System;
-using System.IO;
-using System.Threading.Tasks;
-using System.Text.RegularExpressions;
 
 namespace skill_composer.SpecialActions
 {

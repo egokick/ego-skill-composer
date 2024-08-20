@@ -1,10 +1,6 @@
 ﻿using skill_composer.Models;
 using skill_composer.Helper;
-using System.Diagnostics;
 using Newtonsoft.Json;
-using System.Text.RegularExpressions;
-using System.Net.WebSockets;
-using System.Text;
 
 namespace skill_composer.SpecialActions
 {
@@ -22,6 +18,10 @@ namespace skill_composer.SpecialActions
             while (task.AiResponseShared.TryPeek(out var _))
             {
                 await System.Threading.Tasks.Task.Delay(10);
+
+                // prevents known transcription bug with twilio websocket where the AI introduction audio playing over speaker is incorrectly received as coming
+                // from the end user channel, this is only a problem when the phone is in Speaker mode.
+                task.UserResponseShared.TryDequeue(out var _);  
             }
 
             var conversationList = new Dictionary<string, string> { { "AI", task.Input } };

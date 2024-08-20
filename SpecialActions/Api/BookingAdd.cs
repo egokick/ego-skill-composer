@@ -37,7 +37,7 @@ namespace skill_composer.SpecialActions
                 request.BookingDate = DateTime.Now;
                 request.StatusId = 1; 
  
-                var databaseService = new DatabaseService(Program._settings);
+                var databaseService = new DatabaseService();
 
                 var parameters = new Dictionary<string, string>
                 {

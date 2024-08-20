@@ -1,8 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using skill_composer.Models;
+﻿using skill_composer.Models;
 using skill_composer.Helper;
 
 namespace skill_composer.SpecialActions
@@ -21,8 +17,8 @@ namespace skill_composer.SpecialActions
                 throw new ArgumentException("File extension must be specified in the task input.");
             }
 
-            // Get all files in the output directory with the specified extension
-            var outputFiles = Directory.GetFiles(outputDirectory, $"*.{fileExtension}");
+            // Get all files in the output directory and its subdirectories with the specified extension
+            var outputFiles = Directory.GetFiles(outputDirectory, $"*{fileExtension}", SearchOption.AllDirectories);
 
             foreach (var outputFile in outputFiles)
             {

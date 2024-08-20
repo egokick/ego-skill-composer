@@ -1,10 +1,6 @@
-﻿using System;
-using System.IO;
-using System.IO.Compression;
+﻿using System.IO.Compression;
 using System.Net;
-using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Threading.Tasks;
 using skill_composer.Models;
 
 namespace skill_composer.SpecialActions

@@ -17,7 +17,7 @@ namespace skill_composer.SpecialActions
     {
         public async Task<Models.Task> Execute(Models.Task task, Skill selectedSkill)
         {
-            var aiToken = GetAssemblyAiWebsocketTemporaryToken(Program._settings, 360000).Result;
+            var aiToken = GetAssemblyAiWebsocketTemporaryToken(360000).Result;
             var assemblyAiWebSocket = new ClientWebSocket();
             var serverUri = new Uri($"wss://api.assemblyai.com/v2/realtime/ws?sample_rate=16000&token={aiToken}&encoding=pcm_s16le");
 

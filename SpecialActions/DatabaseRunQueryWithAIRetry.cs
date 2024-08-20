@@ -1,4 +1,5 @@
 ﻿using skill_composer.Models;
+using skill_composer.Helper;
 using skill_composer.Services;
 using Newtonsoft.Json;
 using System.Data;
@@ -7,7 +8,10 @@ using System.Text;
 
 namespace skill_composer.SpecialActions
 {
-    public class DatabaseRunQuery : ISpecialAction
+    /// <summary>
+    /// Useful if you are raw dogging AI query execution. If the query fails the AI will attempt to fix it and rerun it.
+    /// </summary>
+    public class DatabaseRunQueryWithAIRetry : ISpecialAction
     {
         public async Task<Models.Task> Execute(Models.Task task, Skill selectedSkill)
         {
@@ -21,7 +25,43 @@ namespace skill_composer.SpecialActions
                 query = Regex.Replace(query, @"(?<!\\)\\(?!\\)", "\\\\");
             }
 
-            DataSet dbResult = await databaseService.ExecuteQueryMultiTable(query);
+            DataSet dbResult = null;
+
+            try
+            {
+                // attempt 1
+                dbResult = await databaseService.ExecuteQueryMultiTable(query);
+            }
+            catch (Exception ex) 
+            {
+                try
+                {
+                    // attempt 2 - attempt to escape apostrophes
+                    query = query
+                        .Replace("'", "''")
+                        .Replace("'',", "',")
+                        .Replace("'')", "')")
+                        .Replace("(''", "('")
+                        .Replace(", ''", ", '")
+                        .Replace(",  ''", ", '");
+
+                    dbResult = await databaseService.ExecuteQueryMultiTable(query);
+                }
+                catch(Exception ex2) 
+                {
+                        // attempt 3
+                    var aiMessage = $"The following mysql query failed to execute successfully: {task.Input}\n\nException: {ex2.Message} .\nModify the mysql query to fix the error. IMPORTANT! Return mysql code only, your response will be directly passed to another program.";
+
+                    var api = new ApiHandler();
+
+                    var aiResponse = await api.GetAIResponse(aiMessage);
+
+                    var dbQueryV2 = RemoveFirstAndLastLines(aiResponse);
+
+                    dbResult = await databaseService.ExecuteQueryMultiTable(query);
+                }
+                
+            }
 
             if (dbResult != null)
             {
@@ -76,23 +116,31 @@ namespace skill_composer.SpecialActions
 
         private string SerializeDataSetWithTableNames(DataSet dataSet)
         {
-            var dictionary = new Dictionary<string, List<Dictionary<string, object>>>();
+            var dictionary = new Dictionary<string, object>();
 
-            foreach (DataTable table in dataSet.Tables)
+            // If the operation is a non-query and successful, add a success message
+            if (dataSet.Tables.Count == 0)
             {
-                var tableData = new List<Dictionary<string, object>>();
-
-                foreach (DataRow row in table.Rows)
+                dictionary["Result"] =  "Operation succeeded"  ;
+            }
+            else
+            {
+                foreach (DataTable table in dataSet.Tables)
                 {
-                    var rowData = new Dictionary<string, object>();
-                    foreach (DataColumn column in table.Columns)
-                    {
-                        rowData[column.ColumnName] = row[column];
-                    }
-                    tableData.Add(rowData);
-                }
+                    var tableData = new List<Dictionary<string, object>>();
 
-                dictionary[table.TableName] = tableData;
+                    foreach (DataRow row in table.Rows)
+                    {
+                        var rowData = new Dictionary<string, object>();
+                        foreach (DataColumn column in table.Columns)
+                        {
+                            rowData[column.ColumnName] = row[column];
+                        }
+                        tableData.Add(rowData);
+                    }
+
+                    dictionary[table.TableName] = tableData;
+                }
             }
 
             return JsonConvert.SerializeObject(dictionary, Formatting.Indented);

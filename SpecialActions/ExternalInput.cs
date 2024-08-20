@@ -2,15 +2,11 @@
 
 namespace skill_composer.SpecialActions
 {
-    public class CopyInputToOutput : ISpecialAction
-    { 
+    public class ExternalInput : ISpecialAction
+    {
+        // place holder consider dynamically constructing a form from task.Input when the SpecialAction is ExternalInput
         public async Task<Models.Task> Execute(Models.Task task, Skill selectedSkill)
-        {
-            if (!string.IsNullOrEmpty(task.Input))
-            {
-                task.Output = task.Input;
-            }
-            
+        {            
             return task;
         }
     }

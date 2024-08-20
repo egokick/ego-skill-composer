@@ -26,7 +26,7 @@ namespace skill_composer.SpecialActions
 
             try
             {
-                var processingTask = StartProcessingAsync(outputDirectory, Program._settings, cancellationToken);
+                var processingTask = StartProcessingAsync(outputDirectory, cancellationToken);
                 var recordingTask = StartRecordingAsync(outputDirectory, selectedDevice,  cancellationToken);              
 
                 // Wait for both tasks to complete
@@ -134,7 +134,7 @@ namespace skill_composer.SpecialActions
             }
         }
 
-        private static async Task<bool> StartProcessingAsync(string outputDirectory, Settings settings, CancellationToken cancellationToken)
+        private static async Task<bool> StartProcessingAsync(string outputDirectory, CancellationToken cancellationToken)
         {
             await Task.Delay(100);
             
@@ -158,7 +158,7 @@ namespace skill_composer.SpecialActions
                     filesToProcess = new List<string>();
                 }  
 
-                var finalTranscript = await ConcatenateAndTranscribeAsync(filesToProcess, settings);
+                var finalTranscript = await ConcatenateAndTranscribeAsync(filesToProcess);
                 Console.WriteLine("==================");
                 Console.WriteLine(finalTranscript);
 
@@ -167,7 +167,7 @@ namespace skill_composer.SpecialActions
             return true;
         }
 
-        private static async Task<string> ConcatenateAndTranscribeAsync(List<string> tempFiles, Settings settings)
+        private static async Task<string> ConcatenateAndTranscribeAsync(List<string> tempFiles)
         {
             if (tempFiles.Count < 2)
                 return "";
@@ -177,7 +177,7 @@ namespace skill_composer.SpecialActions
             // Concatenate all files in tempFiles list
             ConcatenateAudioFiles(tempFiles, concatenatedFilePath);
 
-            string finalText = await TranslateAudioToText(concatenatedFilePath, settings);
+            string finalText = await TranslateAudioToText(concatenatedFilePath);
 
             File.Delete(concatenatedFilePath);
             return finalText;
@@ -279,10 +279,10 @@ namespace skill_composer.SpecialActions
             }
         }
 
-        public static async Task<string> TranslateAudioToText(string filePath, Settings settings)
+        public static async Task<string> TranslateAudioToText(string filePath)
         {
             var jsonResponse = await "https://api.openai.com/v1/audio/translations"
-                .WithHeader("Authorization", $"Bearer {settings.OpenAiKey}")
+                .WithHeader("Authorization", $"Bearer {Settings.OpenAiKey}")
                 .PostMultipartAsync(mp => mp
                     .AddFile("file", filePath)
                     .AddString("model", "whisper-1"))
@@ -292,14 +292,14 @@ namespace skill_composer.SpecialActions
             return response?["text"] ?? "";
         }
 
-        private static async Task<string> MergeAndTranscribeAsync(ConcurrentBag<string> tempFiles, Settings settings)
+        private static async Task<string> MergeAndTranscribeAsync(ConcurrentBag<string> tempFiles)
         {
             var tempFilesList = tempFiles.ToList();
             string concatenatedFilePath = Path.Combine(Path.GetDirectoryName(tempFilesList[0]), "final_concatenated.mp3");
 
             ConcatenateAudioFiles(tempFilesList, concatenatedFilePath);
 
-            string finalText = await TranslateAudioToText(concatenatedFilePath, settings);
+            string finalText = await TranslateAudioToText(concatenatedFilePath);
 
             File.Delete(concatenatedFilePath);
 

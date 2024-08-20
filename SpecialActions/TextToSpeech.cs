@@ -1,17 +1,6 @@
-﻿using NAudio.CoreAudioApi;
-using NAudio.Wave;
-using Newtonsoft.Json;
-using skill_composer.Models;
-using System.Diagnostics;
-
+﻿using skill_composer.Models;
 using skill_composer.Helper;
-using skill_composer.Models;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Text;
-using static skill_composer.Helper.AssemblyAiHelper;
 using Flurl.Http;
 using System.Text.RegularExpressions;
 using Task = System.Threading.Tasks.Task;
@@ -58,7 +47,7 @@ namespace skill_composer.SpecialActions
             // Convert each chunk to audio and save it.
             foreach (var chunk in chunks)
             {
-                var audioBytes = ConvertTextToAudio(chunk, voiceModel, Program._settings).Result; // Assuming this is an async method
+                var audioBytes = ConvertTextToAudio(chunk, voiceModel).Result; // Assuming this is an async method
 
                 var outputFilePath = Path.Combine(outputDirectory, $"audio_{++fileIndex}.mp3");
                 File.WriteAllBytes(outputFilePath, audioBytes);
@@ -88,7 +77,7 @@ namespace skill_composer.SpecialActions
                 }
             }
         }
-        private static async Task<byte[]> ConvertTextToAudio(string inputText, string voiceModel, Settings settings)
+        private static async Task<byte[]> ConvertTextToAudio(string inputText, string voiceModel)
         {
             var apiUrl = "https://api.openai.com/v1/audio/speech";
 
@@ -114,7 +103,7 @@ namespace skill_composer.SpecialActions
             {
                 // First, send the request but don't immediately read the response body
                 var response = await apiUrl
-                    .WithHeader("Authorization", $"Bearer {settings.OpenAiKey}")
+                    .WithHeader("Authorization", $"Bearer {Settings.OpenAiKey}")
                     .WithHeader("Content-Type", "application/json")
                     .WithTimeout(600) // Sets the timeout to 6 minutes
                     .PostJsonAsync(requestBody);

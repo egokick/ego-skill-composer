@@ -10,19 +10,46 @@ namespace skill_composer.SpecialActions
         {
             var outputDirectory = FilePathHelper.GetDataOutputDirectory();
 
-            var fileName = $"{GenerateRandomFileName(6)}.txt";
+            var lines = task.Input.Split("\n").ToList();
 
-            var lines = task.Input.Split("\n");
+            var directory = lines.FirstOrDefault(line => line.StartsWith("directory:"))?["directory:".Length..]?.Trim();
+            var outputsubdirectory = lines.FirstOrDefault(line => line.StartsWith("outputsubdirectory:"))?["outputsubdirectory:".Length..]?.Trim();
+            var filename = lines.FirstOrDefault(line => line.StartsWith("filename:"))?["filename:".Length..]?.Trim();
+            var content = string.Join('\n', lines.Where(line => !line.StartsWith("outputsubdirectory:") && !line.StartsWith("filename:") && !line.StartsWith("directory:")).ToList());
+            content = content.Replace("content:", "");
 
-            if (lines.FirstOrDefault() is not null && lines.First().Count(c => c == '-') == 4)
+            // Check if the first line contains the filename and extract it
+            if (!string.IsNullOrEmpty(filename))
+            {                
+                filename = Path.GetFileName(filename); // Extract just the filename if it's a path
+                filename = Regex.Replace(filename, "[^a-zA-Z0-9._-]", "");                 
+            }
+            else
             {
-                fileName = lines.First();
-                fileName = Regex.Replace(fileName, "[^a-zA-Z0-9._]", "");
+                filename = $"{GenerateRandomFileName(6)}.txt";
             }
 
-            var outputFilePath = Path.Combine(outputDirectory, fileName);
+            if (!string.IsNullOrEmpty(outputsubdirectory))
+            {
+                outputDirectory = Path.Combine(outputDirectory, outputsubdirectory);
+            }
 
-            File.WriteAllText(outputFilePath, task.Input);
+            // this allows you to write to the input directory 
+            if (!string.IsNullOrEmpty(directory)) 
+            {                
+                outputDirectory = Path.GetDirectoryName(directory);
+            }
+
+            var outputFilePath = Path.Combine(outputDirectory, filename);
+
+            string directoryPath = Path.GetDirectoryName(outputFilePath);
+            if (!Directory.Exists(directoryPath))
+            {
+                Directory.CreateDirectory(directoryPath);
+            }
+
+            // Write the remaining lines to the file, excluding the filename line
+            File.WriteAllText(outputFilePath, content);
 
             task.FilePath = outputFilePath;
             return task;
@@ -37,6 +64,5 @@ namespace skill_composer.SpecialActions
 
             return $"{fileName}";
         }
-
     }
 }

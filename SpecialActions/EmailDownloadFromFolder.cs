@@ -2,8 +2,6 @@
 using System.Text.RegularExpressions;
 using skill_composer.Models;
 using skill_composer.Helper;
-using Azure.Identity;
-using Task = System.Threading.Tasks.Task;
 using Microsoft.Graph.Me.Messages.Item.Move;
 using Microsoft.Graph.Models;
 
@@ -39,7 +37,7 @@ namespace skill_composer.SpecialActions
             string originFolderName = folders[0];
             string destinationFolderName = folders[1];
 
-            var interactiveBrowserCredential = AuthenticationHelper.GetInteractiveBrowserCredential(Program._settings.AzureClientId);
+            var interactiveBrowserCredential = AuthenticationHelper.GetInteractiveBrowserCredential(Settings.AzureClientId);
 
             var graphClient = new GraphServiceClient(interactiveBrowserCredential);
 

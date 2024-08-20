@@ -9,25 +9,26 @@
 
 	<ItemGroup> 
 	  <Compile Remove="data\**" /> 
+	  <Compile Remove="docs\**" /> 
 	  <Compile Remove="packages\**" /> 
 	  <Compile Remove="test\**" /> 
 	  <EmbeddedResource Remove="data\**" /> 
+	  <EmbeddedResource Remove="docs\**" /> 
 	  <EmbeddedResource Remove="packages\**" /> 
 	  <EmbeddedResource Remove="test\**" /> 
 	  <None Remove="*.json" /> 
 	  <None Remove="data\**" /> 
+	  <None Remove="docs\**" /> 
 	  <None Remove="packages\**" /> 
 	  <None Remove="test\**" />
 	</ItemGroup>
-
-	<ItemGroup>
-	  <Content Include="appsettings.json" />
-	</ItemGroup>
-
-
+ 
 
 	<ItemGroup>
 		<PackageReference Include="AWSSDK.S3" Version="3.7.400" />
+		<PackageReference Include="LibGit2Sharp" Version="0.30.0" />
+		<PackageReference Include="PusherServer" Version="5.0.0" />
+		<PackageReference Include="Octokit" Version="13.0.0" />
 		<PackageReference Include="Azure.Identity" Version="1.12.0" />
 		<PackageReference Include="Flurl.Http" Version="4.0.2" />
 		<PackageReference Include="Magick.NET-Q16-AnyCPU" Version="13.10.0" />

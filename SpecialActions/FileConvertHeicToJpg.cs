@@ -1,7 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Threading.Tasks;
-using skill_composer.Models;
+﻿using skill_composer.Models;
 using skill_composer.Helper;
 using ImageMagick; // Add ImageMagick for image processing
 

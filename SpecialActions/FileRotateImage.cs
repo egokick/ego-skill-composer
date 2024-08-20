@@ -1,12 +1,6 @@
-﻿using System;
-using System.Drawing;
+﻿using System.Drawing;
 using System.Drawing.Imaging;
-using System.Threading.Tasks;
 using skill_composer.Models;
-using skill_composer.Helper;
-using static System.Drawing.Image;
-using System.Text.RegularExpressions;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace skill_composer.SpecialActions
 {

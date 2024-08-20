@@ -1,7 +1,4 @@
 ﻿using skill_composer.Models;
-using skill_composer.Helper;
-using System.IO;
-using System.Threading.Tasks;
 
 namespace skill_composer.SpecialActions
 {
@@ -24,9 +21,8 @@ namespace skill_composer.SpecialActions
 
                 if (File.Exists(trimmedFilePath))
                 {
-                    var fileName = Path.GetFileName(trimmedFilePath);
                     var fileContent = await File.ReadAllTextAsync(trimmedFilePath);
-                    task.Output += $"Title: {fileName} {fileContent}\n";
+                    task.Output += $"FilePath:{trimmedFilePath}\n{fileContent}\n";
                 }
                 else
                 {
@@ -45,6 +41,5 @@ namespace skill_composer.SpecialActions
 
             return string.Join("\n", filteredLines);
         }
-
     }
 }

@@ -7,20 +7,13 @@ using Amazon;
 namespace skill_composer.Helper
 {
     public static class SkillHelper
-    {
-        private static readonly string bucketName = "projectsecretary-063207042820";
-        private static readonly string keyName = "apps/codedeploy/ecs/secretaryapi/skills.json";
+    {   
         private static readonly RegionEndpoint bucketRegion = RegionEndpoint.EUWest1; // Replace with your region
-        private static readonly IAmazonS3 s3Client = new AmazonS3Client(bucketRegion);
-        private static readonly Settings _settings = new Settings();      
+        private static readonly IAmazonS3 s3Client = new AmazonS3Client(bucketRegion); 
 
-        public static bool ProcessSkill(Skill skill)
-        {           
-            Program._settings = _settings;
-
-            Program.ProcessSkill(skill);
-
-            return true;
+        public static string ProcessSkill(Skill skill)
+        {         
+           return Program.ProcessSkill(skill);
         }
 
         public static async Task<bool> ProcessSkillByName(string skillName)
@@ -54,6 +47,7 @@ namespace skill_composer.Helper
                 throw;
             }
         }
+
         public static async Task<List<string>> GetSkillNames()
         {
             try
@@ -80,16 +74,16 @@ namespace skill_composer.Helper
 
         public static async Task<SkillSet> GetSkillsFromS3()
         {
-            //    string json = File.ReadAllText("C:\\source\\ProjectSecretary\\secretary-api\\skills.json");
-            //    SkillSet ss = JsonConvert.DeserializeObject<SkillSet>(json);
-            //    return ss;
+            //string json = File.ReadAllText("C:\\source\\ProjectSecretary\\secretary-api\\skills.json");
+            //SkillSet ss = JsonConvert.DeserializeObject<SkillSet>(json);
+            //return ss;
 
             try
             {
                 var request = new GetObjectRequest
                 {
-                    BucketName = bucketName,
-                    Key = keyName
+                    BucketName = Settings.S3BucketName,
+                    Key = Settings.S3KeyName
                 };
 
                 using (GetObjectResponse response = await s3Client.GetObjectAsync(request))
@@ -109,6 +103,39 @@ namespace skill_composer.Helper
             catch (Exception e)
             {
                 Console.WriteLine("Unknown encountered on server. Message:'{0}' when reading object", e.Message);
+                throw;
+            }
+        }
+
+        public static async Task<bool> SaveSkills(SkillSet skillSet)
+        {
+            try
+            {
+                // Serialize the SkillSet to a JSON string
+                string updatedJson = JsonConvert.SerializeObject(skillSet, Formatting.Indented);
+
+                // Create a PutObjectRequest to upload the JSON string to S3
+                var putRequest = new PutObjectRequest
+                {
+                    BucketName = Settings.S3BucketName,
+                    Key = Settings.S3KeyName,
+                    ContentBody = updatedJson,
+                    ContentType = "application/json"
+                };
+
+                // Upload the JSON string to S3
+                await s3Client.PutObjectAsync(putRequest);
+
+                return true;
+            }
+            catch (AmazonS3Exception e)
+            {
+                Console.WriteLine("Error encountered ***. Message:'{0}' when saving skills", e.Message);
+                throw;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Unknown error encountered on server. Message:'{0}' when saving skills", e.Message);
                 throw;
             }
         }
@@ -145,8 +172,8 @@ namespace skill_composer.Helper
                 // Create a PutObjectRequest to upload the new JSON string to S3
                 var putRequest = new PutObjectRequest
                 {
-                    BucketName = bucketName,
-                    Key = keyName,
+                    BucketName = Settings.S3BucketName,
+                    Key = Settings.S3KeyName,
                     ContentBody = updatedJson,
                     ContentType = "application/json"
                 };
@@ -188,8 +215,8 @@ namespace skill_composer.Helper
                     // Create a PutObjectRequest to upload the new JSON string to S3
                     var putRequest = new PutObjectRequest
                     {
-                        BucketName = bucketName,
-                        Key = keyName,
+                        BucketName = Settings.S3BucketName,
+                        Key = Settings.S3KeyName,
                         ContentBody = updatedJson,
                         ContentType = "application/json"
                     };
@@ -236,8 +263,8 @@ namespace skill_composer.Helper
                     // Create a PutObjectRequest to upload the new JSON string to S3
                     var putRequest = new PutObjectRequest
                     {
-                        BucketName = bucketName,
-                        Key = keyName,
+                        BucketName = Settings.S3BucketName,
+                        Key = Settings.S3KeyName,
                         ContentBody = updatedJson,
                         ContentType = "application/json"
                     };
@@ -269,7 +296,6 @@ namespace skill_composer.Helper
         {
             try
             {
-
                 // Get the latest SkillSet from S3
                 SkillSet skillSet = await GetSkillsFromS3();
 
@@ -297,6 +323,26 @@ namespace skill_composer.Helper
             }
         }
 
+        public static async Task<string> GetInputFieldsBySkillName(string skillName)
+        {
+            var skill = await GetSkillByName(skillName);
+
+            var externalInputTask = skill.Tasks
+                .Where(x => x.Name == "ExternalInput")
+                .First();
+
+            if (externalInputTask is null || string.IsNullOrEmpty(externalInputTask.Input)) 
+                return "";
+                        
+            //externalInputTask.Input = clientLogin.RequiresAiKey ? externalInputTask.Input : externalInputTask.Input.Replace("OpenAiKey", "");
+
+            var cleanedInput = string.Join(", ", externalInputTask.Input.Split(',')
+                .Select(s => s.Trim())
+                .Where(s => !string.IsNullOrEmpty(s))
+            );
+
+            return cleanedInput;
+        }
 
     }
 }

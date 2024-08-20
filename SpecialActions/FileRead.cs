@@ -43,7 +43,7 @@ namespace skill_composer.SpecialActions
             var fileName = Path.GetFileName(task.FilePath);
             var fileContent = File.ReadAllText(task.FilePath);
 
-            task.Output = $"Title: {fileName} {fileContent}";
+            task.Output = fileContent;
             
             return task;
         }

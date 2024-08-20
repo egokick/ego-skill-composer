@@ -26,14 +26,17 @@
         /// <param name="logType">The type of log.</param>
         public static void Log(string message, LogType logType = LogType.General)
         {
-            Console.WriteLine($"{logType} {message}");
+            if (logType == LogType.Conversation)
+                Console.WriteLine($"{message}");
 
-            //var serviceTypeLogPath = Path.Combine(FilePathHelper.GetRootDirectory(), $"log{logType}.txt");
 
             //if (logType != LogType.Debug && logType != LogType.TwilioWebsocket && logType != LogType.AssemblyAIWebsocket)
             //{
             //    Console.WriteLine($"{logType} {message}");
             //}
+
+
+            //var serviceTypeLogPath = Path.Combine(FilePathHelper.GetRootDirectory(), $"log{logType}.txt");
 
             //message = message.TrimEnd() + Environment.NewLine; // Ensure message ends with a newline
 
@@ -128,6 +131,7 @@
     /// </summary>
     public enum LogType
     {
+        Conversation,
         /// <summary>
         /// Database related log.
         /// </summary>

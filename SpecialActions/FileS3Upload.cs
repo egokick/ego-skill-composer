@@ -1,10 +1,6 @@
 ﻿using Amazon.S3;
 using Amazon.S3.Model;
 using skill_composer.Models;
-using skill_composer.Helper;
-using System;
-using System.IO;
-using System.Threading.Tasks;
 
 namespace skill_composer.SpecialActions
 {

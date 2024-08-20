@@ -1,10 +1,5 @@
 ﻿using Newtonsoft.Json;
 using skill_composer.Models;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using System.Text.RegularExpressions;
 
 namespace skill_composer.Helper
 { 
@@ -22,28 +17,38 @@ namespace skill_composer.Helper
 
             var path = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
 
-            // Check if this directory contains features and config folder, if it doesn't go up a directory and look again
-            var programExists = File.Exists(Path.Combine(path, "Program.cs")) && !path.ToLower().Contains("test");
-
-            if (programExists)
+            // Check if the current directory contains a folder named "skill-composer"
+            var skillComposerDir = Path.Combine(path, "skill-composer");
+            if (Directory.Exists(skillComposerDir))
             {
-                _skillComposerDirectory = path;
-                return _skillComposerDirectory;
+                var programExists = File.Exists(Path.Combine(skillComposerDir, "skill-composer.csproj")) && !skillComposerDir.ToLower().Contains("test");
+
+                if (programExists)
+                {
+                    _skillComposerDirectory = skillComposerDir;
+                    return _skillComposerDirectory;
+                }
             }
+
+            // If not found, move up the directory tree
             var dir = Directory.GetParent(path).FullName;
 
             for (int i = 0; i < 15; i++)
-            {
-                programExists = File.Exists(Path.Combine(dir, "Program.cs")) && !dir.ToLower().Contains("test");
+            {                
+                var programExists = File.Exists(Path.Combine(dir, "skill-composer.csproj")) && !skillComposerDir.ToLower().Contains("test");
+
                 if (programExists)
                 {
                     _skillComposerDirectory = dir;
                     return _skillComposerDirectory;
                 }
+              
                 dir = Directory.GetParent(dir).FullName;
             }
-            throw new Exception("Failed to find root folder \"skill-composer\", the root folder must contain a 'Program.cs' file");
+
+            throw new Exception("Failed to find root folder \"skill-composer\", the root folder must contain a 'skill-composer.csproj' file");
         }
+
 
         public static string GetDataInputFilePath()
         {
@@ -82,27 +87,46 @@ namespace skill_composer.Helper
 
         public static string MoveFileToOutputDirectory(string fullFilePath)
         {
-            var fileName = Path.GetFileName(fullFilePath);
             var outputDirectory = GetDataOutputDirectory();
+            string outputFilePath;
 
-            if (!Directory.Exists(outputDirectory))
+            if (fullFilePath.Contains("input"))
             {
-                Directory.CreateDirectory(outputDirectory);
+                // Replace "input" with "output" in the file path
+                outputFilePath = fullFilePath.Replace("input", "output");
+            }
+            else
+            {
+                // If "input" is not in the path, use the file name and combine it with the output directory
+                var fileName = Path.GetFileName(fullFilePath);
+                outputFilePath = Path.Combine(outputDirectory, fileName);
             }
 
-            // Combine the output directory path and the sanitized file name
-            var outputFilePath = Path.Combine(outputDirectory, fileName);
-
-            // Check if file with same name exists and rename if necessary
-            int fileNumber = 1;
-            string fileExtension = Path.GetExtension(fileName);
-            string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(fileName);
-
-            while (File.Exists(outputFilePath))
+            // Ensure the output file path is within the output directory
+            if (!outputFilePath.StartsWith(outputDirectory, StringComparison.OrdinalIgnoreCase))
             {
-                string newFileName = $"{fileNameWithoutExtension} ({fileNumber}){fileExtension}";
-                outputFilePath = Path.Combine(outputDirectory, newFileName);
-                fileNumber++;
+                var fileName = Path.GetFileName(fullFilePath);
+                outputFilePath = Path.Combine(outputDirectory, fileName);
+            }
+
+            // Get the directory name from the new output file path
+            var outputFileDirectory = Path.GetDirectoryName(outputFilePath);
+
+            if (outputFileDirectory == null)
+            {
+                throw new InvalidOperationException("Unable to determine output directory.");
+            }
+
+            // Ensure the output directory exists, including all necessary subdirectories
+            if (!Directory.Exists(outputFileDirectory))
+            {
+                Directory.CreateDirectory(outputFileDirectory);
+            }
+
+            // If a file with the same name exists, delete it to allow overwriting
+            if (File.Exists(outputFilePath))
+            {
+                File.Delete(outputFilePath);
             }
 
             // Move the file
@@ -110,7 +134,6 @@ namespace skill_composer.Helper
 
             return outputFilePath;
         }
-
 
         public static string GetDataOutputDirectory()
         {
@@ -264,47 +287,7 @@ namespace skill_composer.Helper
             var dependencies = Path.Combine(GetFeaturesDirectory(isBuild), "dependencies.json");
             if (!File.Exists(dependencies)) throw new Exception($"Failed to find dependencies file {dependencies}");
             return dependencies;
-        }
-        
-        public static Settings InitializeSettings(Settings? settings)
-        {
-            if (settings == null)
-            {
-                settings = new Settings();
-            }
-            if (settings.OpenAiKey == null)
-            {
-                settings.OpenAiKey = string.Empty;
-            }
-            if (settings.OpenAiModel == null)
-            {
-                settings.OpenAiModel = string.Empty;
-            }
-            if (settings.AssemblyAIApiKey == null)
-            {
-                settings.AssemblyAIApiKey = string.Empty;
-            } 
-            if(settings.AzureClientId == null)
-            {
-                settings.AzureClientId = string.Empty;
-            }
-            if(settings.AzureTenantId == null)
-            {
-                settings.AzureTenantId = string.Empty;
-            }
-            if (settings.Databases == null)
-            {
-                settings.Databases = new List<DatabaseSettings>() { new DatabaseSettings() { ConnectionString = "", Name = "" } };
-            }
-           
-            // Serialize the updated settings back to JSON
-            var updatedSettingsJson = JsonConvert.SerializeObject(settings, Formatting.Indented);
-
-            // Write the JSON back to the settings file
-            File.WriteAllText(FilePathHelper.GetSettingsFile(), updatedSettingsJson);
-
-            return settings;
-        }
+        } 
 
         public static void WriteSkillToFile(Skill selectedSkill)
         {

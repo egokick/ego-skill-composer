@@ -37,7 +37,7 @@ namespace skill_composer.SpecialActions
             string originFolderName = folders[0];
             string destinationFolderName = folders[1];
 
-            var interactiveBrowserCredential = AuthenticationHelper.GetInteractiveBrowserCredential(Program._settings.AzureClientId);
+            var interactiveBrowserCredential = AuthenticationHelper.GetInteractiveBrowserCredential(Settings.AzureClientId);
 
             var graphClient = new GraphServiceClient(interactiveBrowserCredential);
 

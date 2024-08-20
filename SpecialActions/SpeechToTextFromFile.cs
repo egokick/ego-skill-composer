@@ -47,7 +47,7 @@ namespace skill_composer.SpecialActions
 
                 foreach (var filePath in audioFiles)
                 {
-                    string translatedText = TranslateAudioToText(filePath, Program._settings).Result;
+                    string translatedText = TranslateAudioToText(filePath).Result;
                     translatedTexts.Add(translatedText);
                     Console.WriteLine(translatedText);
 
@@ -73,10 +73,10 @@ namespace skill_composer.SpecialActions
         }
 
 
-        public static async Task<string> TranslateAudioToText(string filePath, Settings settings)
+        public static async Task<string> TranslateAudioToText(string filePath)
         {
             var jsonResponse = await "https://api.openai.com/v1/audio/translations"
-                .WithHeader("Authorization", $"Bearer {settings.OpenAiKey}")
+                .WithHeader("Authorization", $"Bearer {Settings.OpenAiKey}")
                 .PostMultipartAsync(mp => mp
                     .AddFile("file", filePath)
                     .AddString("model", "whisper-1"))
