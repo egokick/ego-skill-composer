@@ -25,6 +25,10 @@ namespace skill_composer.SpecialActions
         public async Task<Models.Task> ExecuteAsync(Models.Task task, Skill selectedSkill, Settings settings)
         {
             var voiceModel = task.SpecialAction.Replace("TextToSpeech", "");
+            if (string.IsNullOrEmpty(voiceModel))
+            {
+                voiceModel = "???";
+            }
             var dataInputDirectory = FilePathHelper.GetDataInputDirectory();
             var outputDirectory = FilePathHelper.GetDataOutputDirectory();
 
