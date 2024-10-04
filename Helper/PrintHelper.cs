@@ -1,9 +1,5 @@
 ﻿using skill_composer.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace skill_composer.Helper
 {
@@ -16,7 +12,7 @@ namespace skill_composer.Helper
             var defaultColor = Console.ForegroundColor;
 
             Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.WriteLine(Ascii.Logo);
+            Console.WriteLine(AsciiArt.Logo);
             Console.ForegroundColor = defaultColor;
             Console.WriteLine();
         }
@@ -37,7 +33,7 @@ namespace skill_composer.Helper
             while (i < 80)
             {
                 Console.Write(".");
-                System.Threading.Thread.Sleep(18);
+                System.Threading.Thread.Sleep(4);
                 i++;
             }
             // Move the cursor back to the start of the line
@@ -88,17 +84,23 @@ namespace skill_composer.Helper
 
         public static void PrintTaskOutput(Models.Task task)
         {
-            if (task.Mode != "AI") return;
+            if (task.PrintOutput is not null && task.PrintOutput == false) return;
 
-            if (string.IsNullOrEmpty(task.Input)) return;
+            if (task.Mode.ToLower() == "user") return; // don't print the text the user just entered
+            //if (string.IsNullOrEmpty(task.Input)) return;
 
-            if (task.HaltProcessing)
+            if (task.HaltProcessing is not null && task.HaltProcessing == true)
             {
                 Console.WriteLine("No more files to process in input folder");
                 return;
             }
 
             Console.WriteLine(task.Output);
+            var currentForegroundColor = Console.ForegroundColor;
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("");
+            Console.WriteLine("=========================="); 
+            Console.ForegroundColor = currentForegroundColor;
         }
         public static void PrintTaskName(Models.Task task)
         {

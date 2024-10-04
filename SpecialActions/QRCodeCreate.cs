@@ -1,10 +1,6 @@
 ﻿using QRCoder;
 using skill_composer.Models;
 using skill_composer.Helper;
-using System;
-using System.IO;
-using System.Threading.Tasks;
-using System.Text.RegularExpressions;
 
 namespace skill_composer.SpecialActions
 {
@@ -15,7 +11,12 @@ namespace skill_composer.SpecialActions
     /// </summary>
     public class QRCodeCreate : ISpecialAction
     {
-        public async Task<Models.Task> ExecuteAsync(Models.Task task, Skill selectedSkill, Settings settings)
+        public static string GetTestInput() 
+        {
+            return "mailto:egokick@gmail.com?subject=you are a winrar&body=you did extremely well on the test!";
+        }
+
+        public async Task<Models.Task> Execute(Models.Task task, Skill selectedSkill)
         {
             if (string.IsNullOrEmpty(task.Input))
             {
@@ -34,14 +35,13 @@ namespace skill_composer.SpecialActions
             var qrCodeBase64 = Convert.ToBase64String(qrCodeData);
 
             var fileName = new string(Enumerable.Range(0, 10).Select(_ => (char)new Random().Next('a', 'z' + 1)).ToArray()) + ".png";
-
             var outputFilePath = Path.Combine(FilePathHelper.GetDataOutputDirectory(), fileName);
 
             task.FilePath = outputFilePath;
 
-            var fileContent = $"data:image/png;base64,{qrCodeBase64}";
-
-            File.WriteAllText(outputFilePath, fileContent);
+            File.WriteAllBytes(outputFilePath, qrCodeData);
+            var imageBase64String = $"data:image/png;base64,{qrCodeBase64}";
+            task.Output = imageBase64String;
 
             return task;
         }
@@ -61,37 +61,47 @@ namespace skill_composer.SpecialActions
 
         public static string FormatMailTo(string template)
         {
-            // Pattern to match {{Output[x]}}
-            string pattern = @"{{Output\[(\d+)\]}}";
-
-            // Matches in the template
-            var matches = Regex.Matches(template, pattern);
-
-            // Dictionary to store unique matches and their replacements
-            Dictionary<string, string> replacements = new Dictionary<string, string>();
-
-            foreach (Match match in matches)
+         
+            // Find the position of the query part (starts with '?')
+            int queryIndex = template.IndexOf('?');
+            if (queryIndex < 0)
             {
-                string placeholder = match.Value;
-                int index = int.Parse(match.Groups[1].Value);
-
-                // Retrieve the corresponding value (for example, this could be from a list or another source)
-                string value = GetOutputValue(index);
-
-                // Escape the value
-                string escapedValue = Uri.EscapeDataString(value);
-
-                // Store the replacement
-                replacements[placeholder] = escapedValue;
+                // No query part, just return the template as it is
+                return template;
             }
 
-            // Replace all placeholders with their escaped values
-            foreach (var replacement in replacements)
+            // Extract the base mailto part and the query part
+            string baseMailto = template.Substring(0, queryIndex);
+            string queryPart = template.Substring(queryIndex + 1);
+
+            // Split the query part into key-value pairs
+            string[] queryParams = queryPart.Split('&');
+            Dictionary<string, string> escapedParams = new Dictionary<string, string>();
+
+            foreach (string param in queryParams)
             {
-                template = template.Replace(replacement.Key, replacement.Value);
+                string[] keyValue = param.Split('=');
+                if (keyValue.Length == 2)
+                {
+                    string key = keyValue[0];
+                    string value = keyValue[1];
+
+                    // Escape the value
+                    string escapedValue = Uri.EscapeDataString(value);
+                    escapedParams[key] = escapedValue;
+                }
             }
 
-            return template;
+            // Reconstruct the query part with escaped values
+            List<string> escapedQueryParams = new List<string>();
+            foreach (var kvp in escapedParams)
+            {
+                escapedQueryParams.Add($"{kvp.Key}={kvp.Value}");
+            }
+            string escapedQueryPart = string.Join("&", escapedQueryParams);
+
+            // Return the reconstructed mailto string
+            return $"{baseMailto}?{escapedQueryPart}";
         }
 
         // Example method to retrieve values based on index

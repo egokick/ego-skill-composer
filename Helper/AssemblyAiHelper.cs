@@ -7,14 +7,14 @@ namespace skill_composer.Helper
 {
     public static class AssemblyAiHelper
     {
-        public static async Task<string> GetAssemblyAiWebsocketTemporaryToken(Settings settings, int expiresIn)
+        public static async Task<string> GetAssemblyAiWebsocketTemporaryToken(int expiresIn)
         {
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
 
             var requestUri = "https://api.assemblyai.com/v2/realtime/token";
             var responseString = await requestUri
-                .WithHeader("authorization", settings.AssemblyAIApiKey)
+                .WithHeader("authorization", Settings.AssemblyAIApiKey)
                 .PostJsonAsync(new { expires_in = expiresIn })
                 .ReceiveString();
 

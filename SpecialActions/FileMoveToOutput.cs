@@ -5,10 +5,11 @@ namespace skill_composer.SpecialActions
 {
     public class FileMoveToOutput : ISpecialAction
     {
-        public async Task<Models.Task> ExecuteAsync(Models.Task task, Skill selectedSkill, Settings settings)
+        public async Task<Models.Task> Execute(Models.Task task, Skill selectedSkill)
         {   
             // Moves the file to the output folder and assigns FilePath to the new filePath
-            task.FilePath = FilePathHelper.MoveFileToOutputDirectory(task.FilePath);
+            task.FilePath = FilePathHelper.MoveFileToOutputDirectory(task.Input);
+            task.Output = task.FilePath;
 
             return task;
         }

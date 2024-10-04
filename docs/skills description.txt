@@ -1,0 +1,63 @@
+The skills.json file is a configuration file that defines various skills and their associated tasks. Each skill represents a specific functionality or workflow that the automation program can execute. Here's how the skills.json file works and how to construct a new skill:
+
+Structure of skills.json:
+1. The file contains a JSON object with a "Skills" array.
+2. Each element in the "Skills" array represents a single skill.
+
+Components of a skill:
+1. SkillName: A unique identifier for the skill.
+2. Description: A brief explanation of what the skill does.
+3. Temperature: Controls the randomness of AI responses (if applicable).
+4. RepeatCount: Determines how many times the skill should be executed.
+5. Tasks: An array of tasks that make up the skill.
+
+Components of a task:
+1. Number: The order of the task within the skill.
+2. Name: A descriptive name for the task.
+3. Mode: Can be "Internal", "AI", or "User", determining how the task is processed.
+4. Input: The input data or prompt for the task.
+5. SpecialAction: Optional, specifies a special action to be performed.
+
+To construct a new skill:
+
+1. Open the skills.json file.
+2. Add a new object to the "Skills" array.
+3. Define the SkillName, Description, Temperature, and RepeatCount.
+4. Create an array of Tasks, each with Number, Name, Mode, and Input.
+5. If needed, add SpecialAction to tasks that require specific functionality.
+
+Example of a new skill:
+
+```json
+{
+  "SkillName": "New_Skill_Name",
+  "Description": "Description of what this skill does",
+  "Temperature": 0.7,
+  "RepeatCount": 1,
+  "Tasks": [
+    {
+      "Number": 1,
+      "Name": "First_Task",
+      "Mode": "User",
+      "Input": "Please enter some information:"
+    },
+    {
+      "Number": 2,
+      "Name": "Second_Task",
+      "Mode": "AI",
+      "Input": "Process this information: {{Output[1]}}"
+    },
+    {
+      "Number": 3,
+      "Name": "Third_Task",
+      "Mode": "Internal",
+      "Input": "",
+      "SpecialAction": "FileWriteOutput"
+    }
+  ]
+}
+```
+
+In this example, the skill has three tasks: one that prompts the user for input, another that processes that input using AI, and a third that writes the output to a file.
+
+Remember to use proper JSON syntax, and ensure that your new skill fits logically within the existing structure of the skills.json file.

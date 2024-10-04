@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace skill_composer.Models
+﻿namespace skill_composer.Models
 {
     public class Skill
     {
@@ -16,7 +10,7 @@ namespace skill_composer.Models
         public List<Task> Tasks { get; set; }
 
         // Allows the user to disable the file logging, this is particularly useful for large data labelling tasks where the logging may be redundant 
-        public bool DisableFileLogging { get; set; } = false;
-        public bool AppendFileLogging { get; set; } = false;
+        public bool? DisableFileLogging { get; set; } = false;
+        public bool? AppendFileLogging { get; set; } = false;
     }
 }

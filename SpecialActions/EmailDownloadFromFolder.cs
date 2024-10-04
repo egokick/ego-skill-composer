@@ -2,11 +2,8 @@
 using System.Text.RegularExpressions;
 using skill_composer.Models;
 using skill_composer.Helper;
-using Azure.Identity;
-using Task = System.Threading.Tasks.Task;
 using Microsoft.Graph.Me.Messages.Item.Move;
 using Microsoft.Graph.Models;
-using Microsoft.Identity.Client;
 
 namespace skill_composer.SpecialActions
 {
@@ -22,7 +19,7 @@ namespace skill_composer.SpecialActions
     /// </summary> 
     public class EmailDownloadFromFolder : ISpecialAction
     {
-        public async Task<Models.Task> ExecuteAsync(Models.Task task, Skill selectedSkill, Settings settings)
+        public async Task<Models.Task> Execute(Models.Task task, Skill selectedSkill)
         {
             if (string.IsNullOrEmpty(task.Input))
             {
@@ -40,21 +37,7 @@ namespace skill_composer.SpecialActions
             string originFolderName = folders[0];
             string destinationFolderName = folders[1];
 
-            var interactiveBrowserCredential = AuthenticationHelper.GetInteractiveBrowserCredential(Program._settings.AzureClientId);
-            var publicClientApplication = AuthenticationHelper.GetPublicClientApplication(Program._settings.AzureClientId);
-
-            var accounts = await publicClientApplication.GetAccountsAsync();
-            AuthenticationResult result;
-            try
-            {
-                result = await publicClientApplication.AcquireTokenSilent(new[] { "User.Read", "Mail.Read", "Mail.ReadWrite" }, accounts.FirstOrDefault())
-                    .ExecuteAsync();
-            }
-            catch (MsalUiRequiredException)
-            {
-                result = await publicClientApplication.AcquireTokenInteractive(new[] { "User.Read", "Mail.Read", "Mail.ReadWrite" })
-                    .ExecuteAsync();
-            }
+            var interactiveBrowserCredential = AuthenticationHelper.GetInteractiveBrowserCredential(Settings.AzureClientId);
 
             var graphClient = new GraphServiceClient(interactiveBrowserCredential);
 

@@ -1,4 +1,5 @@
 ﻿using Flurl.Http;
+using Newtonsoft.Json;
 using Polly;
 using skill_composer.Models;
 using Task = System.Threading.Tasks.Task;
@@ -6,14 +7,7 @@ using Task = System.Threading.Tasks.Task;
 namespace skill_composer.Helper
 {
     public class ApiHandler
-    {
-        private static Settings _settings;
-
-        public ApiHandler(Settings settings)
-        {
-            _settings = settings;
-        }
-
+    { 
         public async Task<string> GetAIResponse(string userInput, string filePath = null, Skill skill = null, bool isVerifierMode = false)
         {
             Image image = null;
@@ -26,14 +20,14 @@ namespace skill_composer.Helper
                 };
             }
 
-            var apiUrl = _settings.AiUrl;
+            var apiUrl = Settings.AiUrl;
 
             //if (!string.IsNullOrEmpty(_settings.OpenAiApiVersion))
             //{
             //    apiUrl = apiUrl.AppendQueryParam("api-version", _settings.OpenAiApiVersion);
             //}
 
-            var _model = string.IsNullOrEmpty(skill?.OpenAiModel) ? _settings.OpenAiModel : skill?.OpenAiModel;
+            var _model = string.IsNullOrEmpty(skill?.OpenAiModel) ? Settings.OpenAiModel : skill?.OpenAiModel;
 
             var messages = new List<object>();
 
@@ -92,7 +86,7 @@ namespace skill_composer.Helper
             {
                 int delayInSeconds = 1;
                 await Task.Delay(TimeSpan.FromSeconds(1));
-                Console.Write("AI thinking");
+                //Console.Write("AI thinking");
                 while (!cts.Token.IsCancellationRequested)
                 {
                     await Task.Delay(TimeSpan.FromSeconds(1));
@@ -100,6 +94,8 @@ namespace skill_composer.Helper
                     delayInSeconds++;
                 }
             }, cts.Token);
+            
+            Console.WriteLine();
 
             try
             {
@@ -107,18 +103,26 @@ namespace skill_composer.Helper
                 var response = await retryPolicy.ExecuteAsync(() =>
                     apiUrl
                         .WithHeader("Content-Type", "application/json")
-                        .WithHeader("Authorization", $"Bearer {_settings.OpenAiKey}")
+                        .WithHeader("Authorization", $"Bearer {Settings.OpenAiKey}")
                         .WithHeader("use-case", "automated servicenow labelling that replaces 3 teams of people")
                         .WithTimeout(600) // Sets the timeout to 6 minutes
                         .PostJsonAsync(requestData)
                 );
 
+                var rawResponse = await response.GetStringAsync();
+                
+                var openAiResponse = JsonConvert.DeserializeObject<OpenAiResponse>(rawResponse);
+
                 // Deserialize the response body to access the AI response
-                var openAiResponse = await response.GetJsonAsync<OpenAiResponse>();
+                //var openAiResponse = await response.GetJsonAsync<OpenAiResponse>();
 
                 // Cancel the timeout task as we got a response
                 cts.Cancel();
-                await timeoutTask; // Ensure the timeout task has cleaned up properly
+                await timeoutTask; // Ensure the timeout task has cleaned up properly 
+
+                Console.WriteLine("");
+                //Console.WriteLine($"PromptTokens: {openAiResponse.Usage.PromptTokens}");
+                //Console.WriteLine($"ResponseTokens: {openAiResponse.Usage.CompletionTokens}");
 
                 return openAiResponse.Choices.FirstOrDefault()?.Message.Content;
             }

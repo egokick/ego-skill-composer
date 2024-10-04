@@ -12,13 +12,14 @@ using System.Numerics;
 
 namespace skill_composer.SpecialActions
 {
-    public class SpeechToTextRealTime : ISpecialAction
+    // English only
+    public class SpeechToTextRealTimeFromSpeaker : ISpecialAction
     {
-        public async Task<Models.Task> ExecuteAsync(Models.Task task, Skill selectedSkill, Settings settings)
+        public async Task<Models.Task> Execute(Models.Task task, Skill selectedSkill)
         {
-            var aiToken = GetAssemblyAiWebsocketTemporaryToken(settings, 360000).Result;
+            var aiToken = GetAssemblyAiWebsocketTemporaryToken(360000).Result;
             var assemblyAiWebSocket = new ClientWebSocket();
-            var serverUri = new Uri($"wss://api.assemblyai.com/v2/realtime/ws?sample_rate=16000&token={aiToken}&encoding=pcm_s16le&language_code=es");
+            var serverUri = new Uri($"wss://api.assemblyai.com/v2/realtime/ws?sample_rate=16000&token={aiToken}&encoding=pcm_s16le");
 
             await assemblyAiWebSocket.ConnectAsync(serverUri, CancellationToken.None);
 
@@ -27,15 +28,40 @@ namespace skill_composer.SpecialActions
             var devices = enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
 
             Console.WriteLine("Available Playback Devices:");
-            foreach (var device in devices)
+            for (int i = 0; i < devices.Count; i++)
             {
-                Console.WriteLine($"Device ID: {device.ID}, Device Name: {device.FriendlyName}");
+                var device = devices[i];
+                var deviceName = "Unknown";
+                try
+                {
+                    deviceName = device?.FriendlyName
+                         ?? device?.DeviceFriendlyName
+                         ?? "Unknown";
+                }
+                catch 
+                { 
+                    // don't care, didn't ask
+                }
+                Console.WriteLine($"{i}: {deviceName}");
             }
 
-            var defaultPlaybackDevice = enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
-            Console.WriteLine($"Default Playback Device: {defaultPlaybackDevice.FriendlyName}");
+            MMDevice? selectedDevice = null;
 
-            using var capture = new WasapiLoopbackCapture(defaultPlaybackDevice);
+            Console.Write("Select microphone by device number: ");
+            if (int.TryParse(Console.ReadLine(), out int deviceIndex) && deviceIndex >= 0 && deviceIndex < devices.Count)
+            {
+                selectedDevice = devices[deviceIndex];
+
+                Console.WriteLine();
+                Console.WriteLine($"SELECTED DEVICE: {selectedDevice.FriendlyName}"); 
+            }
+            else
+            {
+                Console.WriteLine("Invalid selection. Exiting...");
+            }
+             
+
+            using var capture = new WasapiLoopbackCapture(selectedDevice);
 
             var ffmpegStartInfo = new ProcessStartInfo
             {
@@ -179,28 +205,48 @@ namespace skill_composer.SpecialActions
         private static async Task ReceiveMessages(ClientWebSocket assemblyAiWebSocket)
         {
             var buffer = new byte[1024 * 4];
+            var accumulatedMessage = new StringBuilder();
 
             try
             {
                 while (assemblyAiWebSocket.State == WebSocketState.Open)
                 {
-                    var result = await assemblyAiWebSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+                    WebSocketReceiveResult result;
+                    do
+                    {
+                        result = await assemblyAiWebSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+                        if (result.MessageType == WebSocketMessageType.Close)
+                        {
+                            Console.WriteLine("WebSocket closed by the server.");
+                            break;
+                        }
+                        else
+                        {
+                            accumulatedMessage.Append(Encoding.UTF8.GetString(buffer, 0, result.Count));
+                        }
+                    } while (!result.EndOfMessage);
 
                     if (result.MessageType == WebSocketMessageType.Close)
                     {
-                        Console.WriteLine("WebSocket closed by the server.");
                         break;
                     }
-                    else
+
+                    try
                     {
-                        var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
+                        var message = accumulatedMessage.ToString();
+                    
                         var transcription = JsonConvert.DeserializeObject<AssemblyAiTranscription>(message);
+
+                        accumulatedMessage.Clear(); // Clear the buffer after processing the message
 
                         if (transcription.message_type == "FinalTranscript")
                         {
-                            //Console.WriteLine(JsonConvert.SerializeObject(transcription));
                             Console.WriteLine($"{transcription.text}");
                         }
+                    }
+                    catch (JsonException jsonEx)
+                    {
+                        Console.WriteLine($"JSON exception: {jsonEx.Message}");
                     }
                 }
             }
@@ -216,6 +262,7 @@ namespace skill_composer.SpecialActions
                 }
             }
         }
+
 
     }
 }

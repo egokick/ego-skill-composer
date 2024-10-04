@@ -1,15 +1,11 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using skill_composer.Models;
+﻿using skill_composer.Models;
 using skill_composer.Helper;
 
 namespace skill_composer.SpecialActions
 {
     public class FilesMoveToInputFolderByFileType : ISpecialAction
     {
-        public async Task<Models.Task> ExecuteAsync(Models.Task task, Skill selectedSkill, Settings settings)
+        public async Task<Models.Task> Execute(Models.Task task, Skill selectedSkill)
         {
             var outputDirectory = FilePathHelper.GetDataOutputDirectory();
             var inputDirectory = FilePathHelper.GetDataInputDirectory();
@@ -21,8 +17,8 @@ namespace skill_composer.SpecialActions
                 throw new ArgumentException("File extension must be specified in the task input.");
             }
 
-            // Get all files in the output directory with the specified extension
-            var outputFiles = Directory.GetFiles(outputDirectory, $"*.{fileExtension}");
+            // Get all files in the output directory and its subdirectories with the specified extension
+            var outputFiles = Directory.GetFiles(outputDirectory, $"*{fileExtension}", SearchOption.AllDirectories);
 
             foreach (var outputFile in outputFiles)
             {

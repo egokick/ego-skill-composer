@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 namespace skill_composer.Models
 {
-    public static class Ascii
+    public static class AsciiArt
 {
         public static string Logo = @"                                           Skill
 

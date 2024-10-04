@@ -1,7 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Threading.Tasks;
-using skill_composer.Models;
+﻿using skill_composer.Models;
 using skill_composer.Helper;
 using ImageMagick; // Add ImageMagick for image processing
 
@@ -9,7 +6,7 @@ namespace skill_composer.SpecialActions
 {
     public class FileConvertHeicToPng : ISpecialAction
     {
-        public async Task<Models.Task> ExecuteAsync(Models.Task task, Skill selectedSkill, Settings settings)
+        public async Task<Models.Task> Execute(Models.Task task, Skill selectedSkill)
         {
             var heicFilePath = task.FilePath;
 
