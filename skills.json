@@ -10,22 +10,22 @@
           "Number": 1,
           "Name": "Get_Skills.Json_File",
           "Mode": "Internal",
-          "Input": "C:\\source\\ProjectSecretary\\skill-composer\\skills.json",
+          "Input": "C:\\source\\ego-skill-composer\\skills.json",
           "SpecialAction": "FileRead"
         },
         {
           "Number": 2,
           "Name": "Get_Program.cs_File",
           "Mode": "Internal",
-          "Input": "C:\\source\\ProjectSecretary\\skill-composer\\Program.cs",
+          "Input": "C:\\source\\ego-skill-composer\\Program.cs",
           "SpecialAction": "FileRead"
         },
         {
           "Number": 3,
           "Name": "Get_SpecialActions_FilePaths",
           "Mode": "Internal",
-          "Input": "C:\\source\\ProjectSecretary\\skill-composer\\SpecialActions",
-          "SpecialAction": "FilesPathGetByDirectory"
+          "Input": "C:\\source\\ego-skill-composer\\SpecialActions",
+          "SpecialAction": "FilePathsGetByDirectory"
         },
         {
           "Number": 4,
@@ -37,7 +37,7 @@
           "Number": 5,
           "Name": "Skills.json_Description",
           "Mode": "Internal",
-          "Input": "C:\\source\\ProjectSecretary\\skill-composer\\docs\\skills description.txt",
+          "Input": "C:\\source\\ego-skill-composer\\docs\\skills description.txt",
           "SpecialAction": "FileRead"
         },
         {
@@ -57,7 +57,7 @@
           "Number": 8,
           "Name": "Create_Skill_Json",
           "Mode": "AI",
-          "Input": "I have an automation program that reads a skills.json file and uses AI. Here is the skills.json file: \n{{Output[1]}}\n{{Output[5]}}\nHere is the program.cs file: {{Output[2]}}\n\nHere is the complete list of SpecialActions: {{Output[3]}}\nThe content of some specialActions: {{Output[7]}}\n\nWrite a new skill that will do the following things:\n{{Output[4]}}"
+          "Input": "I have an automation program that reads a skills.json file and uses AI. Here is the skills.json file: \n{{Output[1]}}\n{{Output[5]}}\nHere is the program.cs file: {{Output[2]}}\n\nHere is the complete list of SpecialActions: {{Output[3]}}\nThe content of some specialActions: {{Output[7]}}\n\nWrite a new skill that will do the following things:\n{{Output[4]}}\nThink carefully about all of the context and references that the AI will need to be provided with, ensure you provide the relevent context to the AI, for a good example, take a look at the types of context that were provided to the AI in the skill __Compose_Skill Remember to provide context you need to create tasks in the skills.json that read in files from the project and then carefully provide that context to the AI in the prompt that you craft. Additionally, keep in mind that if you want to pass code around from the AI, you need to be explicit to the AI with instructions to only return code and nothing else, because by default the AI will include extra text that is not valid code."
         },
         {
           "Number": 9,
@@ -356,7 +356,7 @@
     },
     {
       "RepeatCount": 1,
-      "SkillName": "_SpecialAction_Add",
+      "SkillName": "_SpecialAction_Design",
       "Description": "Creates a new special action based on user description and existing code templates.",
       "Temperature": 0.7,
       "Tasks": [
@@ -370,14 +370,14 @@
           "Number": 2,
           "Name": "Get_Existing_SpecialActions",
           "Mode": "Internal",
-          "Input": "C:\\source\\ProjectSecretary\\skill-composer\\SpecialActions",
-          "SpecialAction": "FilesPathGetByDirectory"
+          "Input": "C:\\source\\ego-skill-composer\\SpecialActions",
+          "SpecialAction": "FilePathsGetByDirectory"
         },
         {
           "Number": 3,
           "Name": "Read_Program.cs_File",
           "Mode": "Internal",
-          "Input": "C:\\source\\ProjectSecretary\\skill-composer\\Program.cs",
+          "Input": "C:\\source\\ego-skill-composer\\Program.cs",
           "SpecialAction": "FileRead"
         },
         {
@@ -391,7 +391,7 @@
           "Number": 5,
           "Name": "Read_ApiHandler",
           "Mode": "Internal",
-          "Input": "C:\\source\\ProjectSecretary\\skill-composer\\Api\\ApiHandler.cs",
+          "Input": "C:\\source\\ego-skill-composer\\Api\\ApiHandler.cs",
           "SpecialAction": "FileRead"
         },
         {
@@ -1546,6 +1546,73 @@
           "Mode": "Internal",
           "Input": "",
           "SpecialAction": "ConversationHangUp"
+        }
+      ]
+    },
+    {
+      "RepeatCount": 1,
+      "SkillName": "_SpecialAction_Add",
+      "Description": "Creates a new special action based on user description and existing code templates.",
+      "Temperature": 0.7,
+      "Tasks": [
+        {
+          "Number": 1,
+          "Name": "Get_User_Description",
+          "Mode": "User",
+          "Input": "Please describe the new special action you want to create. Be specific about its functionality:"
+        },
+        {
+          "Number": 2,
+          "Name": "Get_Existing_SpecialActions",
+          "Mode": "Internal",
+          "Input": "C:\\source\\ego-skill-composer\\SpecialActions",
+          "SpecialAction": "FilePathsGetByDirectory"
+        },
+        {
+          "Number": 3,
+          "Name": "Read_Program.cs_File",
+          "Mode": "Internal",
+          "Input": "C:\\source\\ego-skill-composer\\Program.cs",
+          "SpecialAction": "FileRead"
+        },
+        {
+          "Number": 4,
+          "Name": "Read_Existing_SpecialActions_Code",
+          "Mode": "Internal",
+          "Input": "{{Output[2]}}",
+          "SpecialAction": "FilesRead"
+        },
+        {
+          "Number": 5,
+          "Name": "Read_ApiHandler",
+          "Mode": "Internal",
+          "Input": "C:\\source\\ego-skill-composer\\Api\\ApiHandler.cs",
+          "SpecialAction": "FileRead"
+        },
+        {
+          "Number": 6,
+          "Name": "Generate_New_SpecialAction_Code",
+          "Mode": "AI",
+          "Input": "program.cs file: {{Output[3]}}\nHere is the content of the existing special actions: {{Output[4]}}\n\nApiHandler: {{Output[5]}}\nRequirements for a new special action:\n{{Output[1]}}\n\nWrite the C# code for the new special action. Respond only with the valid C# code, nothing else."
+        },
+        {
+          "Number": 7,
+          "Name": "Review_Code_For_Bugs",
+          "Mode": "AI",
+          "Input": "Given the following requirements for a new special action:\n{{Output[1]}}\nThis was the developer code that was written:\n{{Output[6]}}.\n\nReview the code carefully for any bugs or major issues. List the issues that you find (if any). Respond only with the issues, nothing else."
+        },
+        {
+          "Number": 8,
+          "Name": "Fix_Any_Bugs",
+          "Mode": "AI",
+          "Input": "program.cs file: {{Output[3]}}\nHere is the content of the existing special actions: {{Output[4]}}\n\nRequirements for a new special action:\n{{Output[1]}}\n\nAI Output: {{Output[6]}}\n\nDeveloper Review: {{Output[7]}}\n\nReview the developer's feedback and update the code to address bugs and major issues. Respond only with the updated C# code, nothing else."
+        },
+        {
+          "Number": 9,
+          "Name": "Add_SpecialAction",
+          "Mode": "Internal",
+          "Input": "{{Output[8]}}",
+          "SpecialAction": "SpecialActionAdd"
         }
       ],
       "DisableFileLogging": false,
