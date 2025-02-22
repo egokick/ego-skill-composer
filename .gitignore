@@ -3,5 +3,5 @@ obj
 logCombined.txt
 logDatabase.txt
 appsettings.json
-skills.json
 data
+bin

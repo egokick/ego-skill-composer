@@ -19,12 +19,7 @@ namespace skill_composer.Helper
 
         public static void PrintIntroduction()
         {
-            var defaultColor = Console.ForegroundColor;
-
-            Console.WriteLine("Each skill uses AI to achieve a task, enter the number of the skill to run it");
-            Console.WriteLine("各スキルはAIを使ってタスクを達成します。実行するスキルの番号を入力してください。");
-            Console.WriteLine("Cada habilidad utiliza IA para realizar una tarea, ingresa el número de la habilidad para ejecutarla.");
-            Console.WriteLine("每项技能都使用人工智能来完成任务，请输入技能的编号以运行它。");
+            var defaultColor = Console.ForegroundColor; 
             Console.WriteLine("");
 
             int i = 0;
@@ -32,8 +27,7 @@ namespace skill_composer.Helper
             Console.Write("Loading");
             while (i < 80)
             {
-                Console.Write(".");
-                System.Threading.Thread.Sleep(4);
+                Console.Write("."); 
                 i++;
             }
             // Move the cursor back to the start of the line
@@ -54,33 +48,113 @@ namespace skill_composer.Helper
 
         public static Skill SelectSkill(SkillSet skillSet)
         {
-            Console.WriteLine("");
-
+            // sort skills
             skillSet.Skills = skillSet.Skills.OrderBy(x => x.SkillName).ToList();
+            int pageSize = 15;
+            int total = skillSet.Skills.Count;
+            int totalPages = (total + pageSize - 1) / pageSize;
+            int currentPage = 1;
+            int selectionIndex = -1;
 
-            int j = 0;
-            foreach (var skill in skillSet.Skills)
+            // Print a couple blank lines to reserve our region.
+            Console.WriteLine();
+            Console.WriteLine();
+            int regionStart = Console.CursorTop;
+            int regionHeight = pageSize + 4; // fixed region height: pageSize lines + info lines
+                                             // Ensure region fits in the buffer.
+            int bufferHeight = Console.BufferHeight;
+            if (regionStart + regionHeight > bufferHeight)
+                regionStart = Math.Max(0, bufferHeight - regionHeight);
+
+            while (true)
             {
-                j++;
-                Console.WriteLine($"{j} - {skill.SkillName}");
+                // Clear only our designated region.
+                ClearRegion(regionStart, regionHeight);
+                Console.SetCursorPosition(0, regionStart);
+
+                int start = (currentPage - 1) * pageSize;
+                int end = Math.Min(start + pageSize, total);
+                for (int i = start; i < end; i++)
+                {
+                    Console.WriteLine($"{i + 1} - {skillSet.Skills[i].SkillName}");
+                }
+                Console.WriteLine();
+                Console.WriteLine($"Page {currentPage} of {totalPages}");
+                Console.WriteLine("Enter number to select skill or press RIGHT arrow for next page, LEFT arrow for previous page.");
+
+                string inputBuffer = "";
+                bool pageChanged = false;
+                while (true)
+                {
+                    var key = Console.ReadKey(true);
+                    if (string.IsNullOrEmpty(inputBuffer) && key.Key == ConsoleKey.RightArrow)
+                    {
+                        currentPage = (currentPage % totalPages) + 1;
+                        pageChanged = true;
+                        break;
+                    }
+                    else if (string.IsNullOrEmpty(inputBuffer) && key.Key == ConsoleKey.LeftArrow)
+                    {
+                        currentPage = (currentPage > 1) ? currentPage - 1 : totalPages;
+                        pageChanged = true;
+                        break;
+                    }
+                    else if (key.Key == ConsoleKey.Enter)
+                    {
+                        if (!string.IsNullOrEmpty(inputBuffer))
+                        {
+                            if (int.TryParse(inputBuffer, out int num) && num >= start + 1 && num <= end)
+                            {
+                                selectionIndex = num - 1;
+                                break;
+                            }
+                            else
+                            {
+                                Console.SetCursorPosition(0, regionStart + regionHeight);
+                                Console.WriteLine("Invalid selection. Press any key to retry.");
+                                Console.ReadKey(true);
+                                pageChanged = true;
+                                break;
+                            }
+                        }
+                    }
+                    else if (char.IsDigit(key.KeyChar))
+                    {
+                        inputBuffer += key.KeyChar;
+                        Console.Write(key.KeyChar);
+                    }
+                    else if (key.Key == ConsoleKey.Backspace && inputBuffer.Length > 0)
+                    {
+                        inputBuffer = inputBuffer.Substring(0, inputBuffer.Length - 1);
+                        Console.Write("\b \b");
+                    }
+                }
+
+                if (pageChanged)
+                    continue;
+                if (selectionIndex >= 0 && selectionIndex < total)
+                    break;
             }
 
-            var selection2 = "";
-            int si = 0;
-
-            while (si == 0)
-            {
-                selection2 = Console.ReadLine();
-                int.TryParse(selection2, out si);
-            }
-
-            // This is used to overwrite 
-            var skillTemplate = skillSet.Skills[si - 1];
-            Console.WriteLine("Selected skill: " + skillTemplate.SkillName);
-            Console.WriteLine(skillTemplate?.Description ?? "");
-
-            return skillTemplate;
+            var selected = skillSet.Skills[selectionIndex];
+            Console.WriteLine("\nSelected skill: " + selected.SkillName);
+            Console.WriteLine(selected?.Description ?? "");
+            return selected;
         }
+
+        private static void ClearRegion(int startLine, int height)
+        {
+            int width = Console.WindowWidth;
+            int availableLines = Console.BufferHeight - startLine;
+            int effectiveHeight = Math.Min(height, availableLines);
+            for (int i = 0; i < effectiveHeight; i++)
+            {
+                Console.SetCursorPosition(0, startLine + i);
+                Console.Write(new string(' ', width));
+            }
+            Console.SetCursorPosition(0, startLine);
+        }
+
 
         public static void PrintTaskOutput(Models.Task task)
         {

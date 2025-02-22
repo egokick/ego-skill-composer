@@ -3,6 +3,7 @@ using Microsoft.Graph;
 using Microsoft.Graph.Authentication;
 using Microsoft.Graph.Models;
 using Microsoft.Graph.Users.Item.SendMail;
+using Microsoft.Kiota.Authentication.Azure;
 using skill_composer.Models;
 using Task = System.Threading.Tasks.Task;
 
@@ -19,7 +20,10 @@ namespace skill_composer.SpecialActions
             }
 
             var credential = new ClientSecretCredential(Settings.AzureTenantId, Settings.AzureClientId, Settings.AzureSecretId);
-            var graphClient = new GraphServiceClient(new AzureIdentityAuthenticationProvider(credential));
+            var scopes = new[] { "https://graph.microsoft.com/.default" };
+            var options = new ObservabilityOptions();
+            var authProvider = new Microsoft.Graph.Authentication.AzureIdentityAuthenticationProvider(credential, scopes, options, isCaeEnabled: false);
+            var graphClient = new GraphServiceClient(authProvider);
 
             var emailLines = task.Input.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
 

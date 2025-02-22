@@ -7,8 +7,7 @@ namespace skill_composer.Models
     public static class Settings
     {
         public static string AiUrl { get; set; }
-        public static string OpenAiKey { get; set; }
-        public static string OpenAiApiVersion { get; set; }
+        public static string OpenAiKey { get; set; } 
         public static string OpenAiModel { get; set; } 
         public static string AzureClientId { get; set; }   
         public static string AzureTenantId { get; set; }
@@ -43,6 +42,31 @@ namespace skill_composer.Models
                     }
                 }
             }
+        }
+
+        public static void CreateDefaultSettingsFile(string filePath)
+        {
+            var defaultSettings = new Dictionary<string, object>();
+
+            foreach (var prop in typeof(Settings).GetProperties(BindingFlags.Static | BindingFlags.Public))
+            {
+                if (prop.PropertyType == typeof(List<DatabaseSettings>))
+                {
+                    defaultSettings[prop.Name] = new List<DatabaseSettings>();
+                }
+                else if (prop.PropertyType == typeof(string))
+                {
+                    string defaultVal = "";
+                    if (prop.Name == "OpenAiModel")
+                        defaultVal = "gpt-4o";
+                    else if (prop.Name == "AiUrl")
+                        defaultVal = "https://api.openai.com/v1/chat/completions";
+                    defaultSettings[prop.Name] = defaultVal;
+                }
+            }
+
+            var json = JsonConvert.SerializeObject(defaultSettings, Formatting.Indented);
+            File.WriteAllText(filePath, json);
         }
 
     }

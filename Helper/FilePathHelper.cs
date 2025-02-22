@@ -169,7 +169,14 @@ namespace skill_composer.Helper
             {
                 return skillFilePath;
             }
-            throw new Exception($"Failed to find \"appsettings.json\", in the folder {GetRootDirectory()}");
+            else
+            {
+                Settings.CreateDefaultSettingsFile(skillFilePath);
+
+                if (File.Exists(skillFilePath)) return skillFilePath;
+            }
+            
+            throw new Exception($"Failed to find \"appsettings.json\", in the folder {GetRootDirectory()}");            
         }
 
 

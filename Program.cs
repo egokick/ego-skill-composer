@@ -17,7 +17,7 @@ namespace skill_composer
 
             Settings.LoadSettings(filePath);
             
-            api = new ApiHandler();
+            api = new ApiHandler(); 
 
             while (true)
             {
@@ -28,7 +28,7 @@ namespace skill_composer
                 var skillSet = JsonConvert.DeserializeObject<SkillSet>(skillsJson);
 
                 PrintHelper.PrintIntroduction();
-
+           
                 var skill = PrintHelper.SelectSkill(skillSet);
 
                 _ = ProcessSkill(skill);                             
