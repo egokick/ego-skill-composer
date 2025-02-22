@@ -1593,7 +1593,7 @@
           "Number": 6,
           "Name": "Generate_New_SpecialAction_Code",
           "Mode": "AI",
-          "Input": "program.cs file: {{Output[3]}}\nHere is the content of the existing special actions: {{Output[4]}}\n\nApiHandler: {{Output[5]}}\nRequirements for a new special action:\n{{Output[1]}}\n\nWrite the C# code for the new special action. Respond only with the valid C# code, nothing else."
+          "Input": "program.cs file: {{Output[3]}}\nHere is the content of the existing special actions: {{Output[4]}}\n\nApiHandler: {{Output[5]}}\nRequirements for a new special action:\n{{Output[1]}}\n\nWrite the C# code for the new special action. Keep in mind that all codepaths in the SpecialAction must return the task. Respond only with the valid C# code, nothing else."
         },
         {
           "Number": 7,
@@ -1613,6 +1613,72 @@
           "Mode": "Internal",
           "Input": "{{Output[8]}}",
           "SpecialAction": "SpecialActionAdd"
+        }
+      ]
+    },
+    {
+      "RepeatCount": 1,
+      "SkillName": "_SkillUpdate",
+      "Description": "Updates an existing skill based on user input.",
+      "Temperature": 0.7,
+      "Tasks": [
+        {
+          "Number": 1,
+          "Name": "Get_User_Description",
+          "Mode": "User",
+          "Input": "Please describe the skill you want to update and the changes you want to make:"
+        },
+        {
+          "Number": 2,
+          "Name": "Extract_SkillName",
+          "Mode": "AI",
+          "Input": "A user wants to update a skill. Here is their input: {{Output[1]}}. Extract only the skill name from this text and return it. Respond with the skill name only, nothing else."
+        },
+        {
+          "Number": 3,
+          "Name": "Retrieve_Existing_Skill",
+          "Mode": "Internal",
+          "Input": "{{Output[2]}}",
+          "SpecialAction": "SkillGetByName"
+        },
+        {
+          "Number": 4,
+          "Name": "Read_SpecialActions_Code",
+          "Mode": "Internal",
+          "Input": "C:\\source\\ego-skill-composer\\SpecialActions",
+          "SpecialAction": "FilePathsGetByDirectory"
+        },
+        {
+          "Number": 5,
+          "Name": "Read_SpecialActions_Content",
+          "Mode": "Internal",
+          "Input": "{{Output[4]}}",
+          "SpecialAction": "FilesRead"
+        },
+        {
+          "Number": 6,
+          "Name": "Update_Skill_Code",
+          "Mode": "AI",
+          "Input": "Here is the existing skill that needs to be updated: {{Output[3]}}. The user requested the following changes: {{Output[1]}}. Here is the context of all special actions: {{Output[5]}}. Using this context, make the requested changes to the skill. Return only the updated skill code, nothing else."
+        },
+        {
+          "Number": 7,
+          "Name": "Review_Updated_Skill",
+          "Mode": "AI",
+          "Input": "Here is the updated skill code: {{Output[6]}}. Review this code for any potential issues or improvements. Provide a critique, but respond only with the critique, nothing else."
+        },
+        {
+          "Number": 8,
+          "Name": "Refine_Skill_Code",
+          "Mode": "AI",
+          "Input": "Based on the following critique: {{Output[7]}}, refine the updated skill code. Here is the context of the existing skill: {{Output[3]}}, user changes: {{Output[1]}}, and special actions: {{Output[5]}}. Return only the refined skill code as json, nothing else."
+        },
+        {
+          "Number": 9,
+          "Name": "Apply_Skill_Update",
+          "Mode": "Internal",
+          "Input": "{{Output[8]}}",
+          "SpecialAction": "SkillUpdate"
         }
       ],
       "DisableFileLogging": false,

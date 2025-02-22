@@ -29,7 +29,8 @@ namespace skill_composer.Helper
                 try
                 {
                     var actionInstance = (ISpecialAction)Activator.CreateInstance(actionType);
-                    var actionName = actionType.Name.Replace("Action", "");
+                    var actionName = actionType.Name;
+                    //var actionName = actionType.Name.Replace("Action", "");
                     _actions[actionName] = actionInstance;
                 }
                 catch (Exception ex)

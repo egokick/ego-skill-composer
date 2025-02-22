@@ -1,4 +1,5 @@
 ﻿using skill_composer.Models;
+using skill_composer.Helper;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
@@ -19,8 +20,9 @@ namespace skill_composer.SpecialActions
                 return task;
             }
 
-            // Define the path for the new class file in the SpecialActions directory
-            var specialActionsDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SpecialActions");
+            // Get the root directory of the project and then combine with the "SpecialActions" folder
+            var rootDirectory = FilePathHelper.GetRootDirectory();
+            var specialActionsDirectory = Path.Combine(rootDirectory, "SpecialActions");
 
             // Ensure the directory exists
             Directory.CreateDirectory(specialActionsDirectory);
