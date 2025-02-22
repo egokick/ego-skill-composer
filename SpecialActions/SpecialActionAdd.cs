@@ -10,6 +10,8 @@ namespace skill_composer.SpecialActions
     {
         public async Task<Models.Task> Execute(Models.Task task, Skill selectedSkill)
         {
+            if (task.Input.ToLower() == "continue" ) return task;
+
             // Extract the class name and class code from the task input
             var className = ExtractClassName(task.Input);
             var classCode = ExtractClassCode(task.Input);

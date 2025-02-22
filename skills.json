@@ -1902,7 +1902,7 @@
           "Number": 2,
           "Name": "Extract_SkillName",
           "Mode": "AI",
-          "Input": "A user wants to update a skill. Here is their input: {{Output[1]}}. Extract only the skill name from this text and return it. Respond with the skill name only, nothing else. Keep in mind that skill names can include underscores _ so be sure to include them if they were provided."
+          "Input": "A user wants to update a skill. Their input is: {{Output[1]}}.\n\nWe want to:\n1) EXTRACT ONLY the skill name EXACTLY as it appears (verbatim).\n2) If the skill name has underscores (_) or double underscores (__), preserve them EXACTLY as they appear.\n3) Output the skill name on a single line, with NOTHING ELSE (no punctuation, no quotes, no extra text).\n\nBelow are examples showing input -> output (output on a single line):\n\n1) Input: \"Please update my skill to _leadingUnderscoreSkill\"  \n   Output: _leadingUnderscoreSkill\n\n2) Input: \"I want to update my skill to __doubleLeadingUnderscore\"  \n   Output: __doubleLeadingUnderscore\n\n3) Input: \"Update skill: skillWithEnding_\"  \n   Output: skillWithEnding_\n\n4) Input: \"Update skill: __skill_\"  \n   Output: __skill_\n\n5) Input: \"Change skill to _my__skill_\"  \n   Output: _my__skill_\n\n6) Input: \"Set skill to _some__skillWith__multiple___underscores_\"  \n   Output: _some__skillWith__multiple___underscores_\n\n7) Input: \"Skill is skillNoUnderscores\"  \n   Output: skillNoUnderscores\n\nReturn only the skill name. No extra punctuation, no quotes, no additional text."
         },
         {
           "HaltProcessing": false,
@@ -1939,31 +1939,132 @@
         {
           "HaltProcessing": false,
           "Number": 7,
-          "Name": "Update_Skill_Code",
-          "Mode": "AI",
-          "Input": "Here is the existing skill that needs to be updated: {{Output[3]}}. The user requested the following changes: {{Output[1]}}. Here is the context of all special actions: {{Output[6]}}. Here is the context of the program.cs file: {{Output[5]}}. Using this context, make the requested changes to the skill. Return only the updated skill code, nothing else."
+          "Name": "Read_Skills_File",
+          "Mode": "Internal",
+          "Input": "C:\\source\\ego-skill-composer\\skills.json",
+          "SpecialAction": "FilesRead"
         },
         {
           "HaltProcessing": false,
           "Number": 8,
-          "Name": "Review_Updated_Skill",
+          "Name": "Update_Skill_Code",
           "Mode": "AI",
-          "Input": "Here is the updated skill code: {{Output[7]}}. Review this code for any potential issues or improvements. Provide a critique, but respond only with the critique, nothing else."
+          "Input": "Here is the existing skill that needs to be updated: {{Output[3]}}. The user requested the following changes: {{Output[1]}}. Here is the context of all special actions: {{Output[6]}}. Here is the context of the program.cs file: {{Output[5]}}. Here is the context of the skills.json file: {{Output[7]}}. Using this context, make the requested changes to the skill. Return only the updated skill code, nothing else."
         },
         {
           "HaltProcessing": false,
           "Number": 9,
-          "Name": "Refine_Skill_Code",
+          "Name": "Review_Updated_Skill",
           "Mode": "AI",
-          "Input": "Based on the following critique: {{Output[8]}}, refine the updated skill code. Here is the context of the existing skill: {{Output[3]}}, user changes: {{Output[1]}}, and special actions: {{Output[6]}}. Return only the refined skill code as json, nothing else."
+          "Input": "Here is the updated skill code: {{Output[8]}}. Review this code for any potential issues or improvements. Provide a critique, but respond only with the critique, nothing else."
         },
         {
           "HaltProcessing": false,
           "Number": 10,
+          "Name": "Refine_Skill_Code",
+          "Mode": "AI",
+          "Input": "Based on the following critique: {{Output[9]}}, refine the updated skill code. Here is the context of the existing skill: {{Output[3]}}, user changes: {{Output[1]}}, and special actions: {{Output[6]}}. Return only the refined skill code as json, nothing else."
+        },
+        {
+          "HaltProcessing": false,
+          "Number": 11,
           "Name": "Apply_Skill_Update",
           "Mode": "Internal",
-          "Input": "{{Output[9]}}",
+          "Input": "{{Output[10]}}",
           "SpecialAction": "SkillUpdate"
+        }
+      ],
+      "DisableFileLogging": false,
+      "AppendFileLogging": false
+    },
+    {
+      "RepeatCount": 1,
+      "SkillName": "__Compose_Skill_And_Actions",
+      "Description": "Guides the user to create a new skill and necessary special actions.",
+      "Temperature": 0.7,
+      "Tasks": [
+        {
+          "HaltProcessing": false,
+          "Number": 1,
+          "Name": "Get_User_Skill_Description",
+          "Mode": "User",
+          "Input": "Describe what you want the new skill to do. Listing numbered steps in sequence is a good strategy."
+        },
+        {
+          "HaltProcessing": false,
+          "Number": 2,
+          "Name": "Get_Existing_SpecialActions_FilePaths",
+          "Mode": "Internal",
+          "Input": "C:\\source\\ego-skill-composer\\SpecialActions",
+          "SpecialAction": "FilePathsGetByDirectory"
+        },
+        {
+          "HaltProcessing": false,
+          "Number": 3,
+          "Name": "Read_Existing_SpecialActions",
+          "Mode": "Internal",
+          "Input": "{{Output[2]}}",
+          "SpecialAction": "FilesRead"
+        },
+        {
+          "HaltProcessing": false,
+          "Number": 4,
+          "Name": "Read_Program.cs_File",
+          "Mode": "Internal",
+          "Input": "C:\\source\\ego-skill-composer\\Program.cs",
+          "SpecialAction": "FileRead"
+        },
+        {
+          "HaltProcessing": false,
+          "Number": 5,
+          "Name": "Read_Skills.json_File",
+          "Mode": "Internal",
+          "Input": "C:\\source\\ego-skill-composer\\skills.json",
+          "SpecialAction": "FileRead"
+        },
+        {
+          "HaltProcessing": false,
+          "Number": 6,
+          "Name": "Get_High_Level_Steps",
+          "Mode": "AI",
+          "Input": "Using the description provided by the user: {{Output[1]}}, list the high-level steps required to perform the skill."
+        },
+        {
+          "HaltProcessing": false,
+          "Number": 7,
+          "Name": "Check_SpecialActions_Needed",
+          "Mode": "AI",
+          "Input": "Given the high-level steps: {{Output[6]}}, do you have all the necessary special actions from the following list: {{Output[3]}} to accomplish the task? If not, list the names of the new special actions needed. You will also need the skills.json file: {{Output[5]}} and the original user description: {{Output[1]}}."
+        },
+        {
+          "HaltProcessing": false,
+          "Number": 8,
+          "Name": "Create_New_SpecialAction_Code",
+          "Mode": "AI",
+          "Input": "If new special actions are required, write the C# code for each of them. Base your code on the context of the existing Program.cs: {{Output[4]}}, and ensure to return code only."
+        },
+        {
+          "HaltProcessing": false,
+          "Number": 9,
+          "Name": "Add_New_SpecialActions",
+          "Mode": "Internal",
+          "Input": "{{Output[8]}}",
+          "SpecialAction": "SpecialActionAdd"
+        },
+        {
+          "HaltProcessing": false,
+          "Number": 10,
+          "Name": "Design_New_Skill",
+          "Mode": "AI",
+          "Input": "Design the new skill using the description: {{Output[1]}}, existing skills: {{Output[5]}}, and newly created special actions. Provide the skill as JSON, and ensure to return JSON code only."
+        },
+        {
+          "HaltProcessing": false,
+          "Number": 11,
+          "Name": "Add_New_Skill",
+          "Mode": "Internal",
+          "Input": "{{Output[10]}}",
+          "SpecialAction": "SkillAdd"
         }
       ],
       "DisableFileLogging": false,
