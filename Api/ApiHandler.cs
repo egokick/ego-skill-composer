@@ -89,8 +89,7 @@ namespace skill_composer.Helper
                 //Console.Write("AI thinking");
                 while (!cts.Token.IsCancellationRequested)
                 {
-                    await Task.Delay(TimeSpan.FromSeconds(1));
-                    Console.Write(".");
+                    await Task.Delay(TimeSpan.FromSeconds(1)); 
                     delayInSeconds++;
                 }
             }, cts.Token);
@@ -119,8 +118,7 @@ namespace skill_composer.Helper
                 // Cancel the timeout task as we got a response
                 cts.Cancel();
                 await timeoutTask; // Ensure the timeout task has cleaned up properly 
-
-                Console.WriteLine("");
+                 
                 //Console.WriteLine($"PromptTokens: {openAiResponse.Usage.PromptTokens}");
                 //Console.WriteLine($"ResponseTokens: {openAiResponse.Usage.CompletionTokens}");
 

@@ -13,7 +13,7 @@ namespace skill_composer.SpecialActions
     /// the agent will load that skill from the Skills.json file, provide its content for context, and for any task in
     /// that skill with Mode "User", ask the AI the question specified in its Input, assign the response to that task's Output,
     /// then execute the skill and feed its output back to the AgentPilot loop.
-    /// Additionally, a separate thread periodically calls the AI to summarize the most recent action and conversation.
+    /// Additionally, whenever the conversation history is updated, the AI is called to provide a one-sentence summary.
     /// </summary>
     public class AgentPilot : ISpecialAction
     {
@@ -37,42 +37,56 @@ namespace skill_composer.SpecialActions
                 Console.WriteLine($"Error loading skills list: {ex.Message}");
             }
 
-            // Initialize state variables
+            // Use task.Output as the initial goal (set by the user) rather than task.Input
+            string originalGoal = task.Output?.Trim() ?? "";
+            // If no initial goal is provided, repeatedly prompt until one is received.
+            while (string.IsNullOrWhiteSpace(originalGoal))
+            {
+                Console.WriteLine(task.Input); // "Enter your initial goal for the Agent Pilot mode:"
+                originalGoal = Console.ReadLine()?.Trim() ?? "";
+                if (string.IsNullOrWhiteSpace(originalGoal))
+                {
+                    Console.WriteLine("You must enter a nonempty goal.");
+                }
+                else if (originalGoal.ToLower() == "stop")
+                {
+                    Console.WriteLine("User requested to stop Agent Pilot mode.");
+                    task.Output = "Agent Pilot mode ended.";
+                    return task;
+                }
+            }
+            // Record the initial goal in conversation history.
+            var conversationHistory = new System.Collections.Generic.List<string>
+            {
+                $"User set initial goal: {originalGoal}"
+            };
+
             int callCount = 0;
-            List<string> conversationHistory = new List<string>();
-            string originalGoal = task.Input;  // The initial goal provided in the task's Input
             string previousSkillOutput = string.Empty;
+
+            // Track conversation history count for summarization
+            int lastSummarizedCount = conversationHistory.Count;
 
             Console.WriteLine("Agent Pilot mode started. Type new instructions to append or 'stop' to exit.");
 
-            // Start a background task that calls the AI to generate a summary of the last action and recent conversation
-            CancellationTokenSource summaryCts = new CancellationTokenSource();
-            Task summaryTask = Task.Run(async () =>
+            // Helper method to update summary if conversationHistory has new entries.
+            async Task UpdateSummaryIfNeeded()
             {
-                while (!summaryCts.Token.IsCancellationRequested)
+                if (conversationHistory.Count > lastSummarizedCount)
                 {
-                    try
-                    {
-                        // Wait 5 seconds between summary calls
-                        await Task.Delay(5000, summaryCts.Token);
-                        string conversationSnippet = GetLastConversationSnippet(conversationHistory, 5);
-                        string summaryPrompt = $"Please summarize the last action taken by the AI and what has happened so far in Agent Pilot mode. " +
-                                               $"Conversation snippet: {conversationSnippet}";
-                        string aiSummary = await Program.api.GetAIResponse(summaryPrompt);
-                        Console.WriteLine($"\n[AI Summary]: {aiSummary}\n");
-                    }
-                    catch (TaskCanceledException) { break; }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Error during summarization: {ex.Message}");
-                    }
+                    string conversationSnippet = GetLastConversationSnippet(conversationHistory, 5);
+                    string summaryPrompt = $"Please summarize the last action taken by the AI and what has happened so far in Agent Pilot mode. Keep the summary brief, 1 sentence maximum. " +
+                                           $"Conversation snippet: {conversationSnippet}";
+                    string aiSummary = await Program.api.GetAIResponse(summaryPrompt);
+                    Console.WriteLine($"\n[AI Summary]: {aiSummary}\n");
+                    lastSummarizedCount = conversationHistory.Count;
                 }
-            }, summaryCts.Token);
+            }
 
-            // Main loop for Agent Pilot mode
+            // Main loop for Agent Pilot mode.
             while (true)
             {
-                // Check for user input without blocking the loop
+                // Check for user input without blocking.
                 if (Console.KeyAvailable)
                 {
                     string userInput = Console.ReadLine();
@@ -85,17 +99,16 @@ namespace skill_composer.SpecialActions
                         }
                         else
                         {
-                            // Append new instructions to the original goal
                             originalGoal += " " + userInput;
                             conversationHistory.Add($"User appended instructions: {userInput}");
+                            await UpdateSummaryIfNeeded();
                         }
                     }
                 }
 
-                // Build the prompt for the AI call, including available skills list
+                // Build the prompt for the AI call.
                 string summarizedHistory = SummarizeHistory(conversationHistory);
-                string prompt = $"Call Count: {callCount}\n" +
-                                $"Goal: {originalGoal}\n" +
+                string prompt = $"API AI Call Count: {callCount}\n" +
                                 $"Available Skills:\n{availableSkillsContext}\n" +
                                 $"Conversation History: {summarizedHistory}\n" +
                                 $"Previous Skill Output: {previousSkillOutput}\n" +
@@ -105,102 +118,89 @@ namespace skill_composer.SpecialActions
                                 "provide you with its content, and for any task in that skill with Mode 'User', " +
                                 "the agent will ask you the question specified in its 'Input', use your response as that task's output, " +
                                 "then execute the skill and return its output back to you. " +
-                                "If you do not wish to invoke a skill, simply provide your next plan.";
+                                "If you do not wish to invoke a skill, simply provide your next plan.\n" +
+                                $"Goal: {originalGoal}";
 
-                // Call the AI using only the prompt
+                // Call the AI.
                 string aiResponse = await Program.api.GetAIResponse(prompt);
                 callCount++;
                 conversationHistory.Add($"AI Call {callCount}: {aiResponse}");
+                await UpdateSummaryIfNeeded();
 
-                // Display the AI response
-                Console.WriteLine($"\n[Agent Pilot] AI Response:\n{aiResponse}\n");
-
-                // Check if the AI response includes a command to invoke another skill
-                if (aiResponse.IndexOf("InvokeSkill:", StringComparison.OrdinalIgnoreCase) >= 0)
+                // Check for skill invocation.
+                if (aiResponse.IndexOf("InvokeSkill:", System.StringComparison.OrdinalIgnoreCase) >= 0)
                 {
-                    // Extract the skill name from the response
-                    int idx = aiResponse.IndexOf("InvokeSkill:", StringComparison.OrdinalIgnoreCase);
+                    int idx = aiResponse.IndexOf("InvokeSkill:", System.StringComparison.OrdinalIgnoreCase);
                     string commandPart = aiResponse.Substring(idx);
                     string[] parts = commandPart.Split(new char[] { ':' }, 2);
                     if (parts.Length > 1)
                     {
-                        string skillName = parts[1].Trim();
-                        // Remove any trailing punctuation
-                        skillName = skillName.TrimEnd('.', '!', '?');
-                        Console.WriteLine($"Invoking skill: {skillName}");
-
+                        string skillName = parts[1].Trim().TrimEnd('.', '!', '?');
                         try
                         {
-                            // Load the skills file using FilePathHelper.GetSkillFilePath
                             string skillFilePath = FilePathHelper.GetSkillFilePath();
                             string skillsJson = System.IO.File.ReadAllText(skillFilePath);
                             SkillSet skillSet = JsonConvert.DeserializeObject<SkillSet>(skillsJson);
                             Skill? invokedSkill = skillSet?.Skills?.FirstOrDefault(
-                                s => string.Equals(s.SkillName, skillName, StringComparison.OrdinalIgnoreCase));
+                                s => string.Equals(s.SkillName, skillName, System.StringComparison.OrdinalIgnoreCase));
 
                             if (invokedSkill != null)
                             {
-                                // Log the content of the invoked skill for context
                                 string skillContent = JsonConvert.SerializeObject(invokedSkill, Formatting.Indented);
                                 conversationHistory.Add($"Invoked skill '{skillName}' content: {skillContent}");
-                                Console.WriteLine($"Loaded skill '{skillName}'.");
+                                await UpdateSummaryIfNeeded();
 
-                                // For every task in the invoked skill that is in "User" mode,
-                                // ask the AI the question from the task's Input and set the response as task.Output.
-                                foreach (var t in invokedSkill.Tasks.Where(t =>
-                                    t.Mode.Equals("User", StringComparison.OrdinalIgnoreCase)))
+                                foreach (var t in invokedSkill.Tasks.Where(t => t.Mode.Equals("User", System.StringComparison.OrdinalIgnoreCase)))
                                 {
-                                    Console.WriteLine($"For skill '{skillName}', asking AI for task '{t.Name}': {t.Input}");
-                                    string responseForTask = await Program.api.GetAIResponse(t.Input);
+                                    // Build a context for the task call including available skills, conversation history, goal, and previous output.
+                                    string taskContext = $"Available Skills:\n{availableSkillsContext}\n" +
+                                                         $"Conversation History: {summarizedHistory}\n" +
+                                                         $"Original Goal: {originalGoal}\n" +
+                                                         $"Previous Skill Output: {previousSkillOutput}\n" +
+                                                         $"Task Input: {t.Input}"; 
+
+                                    string responseForTask = await Program.api.GetAIResponse(taskContext);
                                     t.Output = responseForTask;
                                     conversationHistory.Add($"AI provided response for invoked skill '{skillName}' task '{t.Name}': {responseForTask}");
-                                    Console.WriteLine($"Response for task '{t.Name}': {responseForTask}");
+                                    await UpdateSummaryIfNeeded();
                                 }
 
-                                // Execute the invoked skill and retrieve its output
+                                // Prevent console logging, the AI will summarize it.
+                                invokedSkill.Tasks.ForEach(x => x.PrintOutput = false);
+
                                 string invokedOutput = Program.ProcessSkill(invokedSkill);
                                 previousSkillOutput = invokedOutput;
                                 conversationHistory.Add($"Invoked skill '{skillName}' executed with output: {invokedOutput}");
-                                Console.WriteLine($"Output from invoked skill '{skillName}': {invokedOutput}");
+                                await UpdateSummaryIfNeeded();
                             }
                             else
                             {
                                 Console.WriteLine($"Skill '{skillName}' not found in the skills file.");
                             }
                         }
-                        catch (Exception ex)
+                        catch (System.Exception ex)
                         {
                             Console.WriteLine($"Error invoking skill '{skillName}': {ex.Message}");
                         }
                     }
                     else
                     {
-                        // If no valid skill invocation was found, simply use the AI response as output.
                         previousSkillOutput = aiResponse;
                     }
                 }
                 else
                 {
-                    // No skill invocation; simply carry forward the AI response.
                     previousSkillOutput = aiResponse;
                 }
 
-                // Brief pause before the next iteration
-                await System.Threading.Tasks.Task.Delay(1000);
+                await Task.Delay(1000);
             }
-
-            // Stop the background summary task
-            summaryCts.Cancel();
-            try { await summaryTask; } catch (TaskCanceledException) { }
 
             task.Output = "Agent Pilot mode ended.";
             return task;
         }
 
-        /// <summary>
-        /// Returns a summary of the last up to 10 conversation history entries.
-        /// </summary>
-        private string SummarizeHistory(List<string> conversationHistory)
+        private string SummarizeHistory(System.Collections.Generic.List<string> conversationHistory)
         {
             int count = conversationHistory.Count;
             if (count > 10)
@@ -210,14 +210,11 @@ namespace skill_composer.SpecialActions
             return string.Join(" | ", conversationHistory);
         }
 
-        /// <summary>
-        /// Extracts a one-sentence summary from the given text.
-        /// </summary>
         private string GetOneSentenceSummary(string text)
         {
             if (string.IsNullOrWhiteSpace(text))
                 return "";
-            var sentences = text.Split(new[] { '.', '!', '?' }, StringSplitOptions.RemoveEmptyEntries);
+            var sentences = text.Split(new[] { '.', '!', '?' }, System.StringSplitOptions.RemoveEmptyEntries);
             if (sentences.Length > 0)
             {
                 return sentences[0].Trim() + ".";
@@ -225,14 +222,11 @@ namespace skill_composer.SpecialActions
             return text;
         }
 
-        /// <summary>
-        /// Returns a snippet consisting of the last 'count' entries from the conversation history.
-        /// </summary>
-        private string GetLastConversationSnippet(List<string> conversationHistory, int count)
+        private string GetLastConversationSnippet(System.Collections.Generic.List<string> conversationHistory, int count)
         {
             if (conversationHistory.Count == 0)
                 return "";
-            var snippet = conversationHistory.Skip(Math.Max(0, conversationHistory.Count - count));
+            var snippet = conversationHistory.Skip(System.Math.Max(0, conversationHistory.Count - count));
             return string.Join(" | ", snippet);
         }
     }

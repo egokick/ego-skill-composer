@@ -176,14 +176,17 @@ namespace skill_composer.Helper
             Console.WriteLine("=========================="); 
             Console.ForegroundColor = currentForegroundColor;
         }
-        public static void PrintTaskName(Models.Task task)
+        public static void PrintTaskName(Models.Task task )
         {
+            if (task.PrintOutput is not null && task.PrintOutput == false) return;
+            
             var currentForegroundColor = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine("");
             Console.WriteLine("==========================");
             Console.WriteLine(task.Name);
             Console.ForegroundColor = currentForegroundColor;
+           
         }
 
     }
