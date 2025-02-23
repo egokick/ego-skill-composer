@@ -1,0 +1,692 @@
+{
+    "Skills": [
+        {
+            "RepeatCount": 99999,
+            "SkillName": "DataInput_BOOK_TRANSLATION_Convert_Images_To_Text_WithImage_Rotation",
+            "Description": "This converts images of a book into text and translates the image text to english. This expects images in JPEG or (HEIC) format, rotates the images to be the correct orientation, names the output text files with the corresponding page number of the book or the original filename.txt if no page number is found in the image.",
+            "OpenAiModel": "gpt-4o",
+            "Temperature": 0.5,
+            "Tasks": [
+                {
+                    "HaltProcessing": false,
+                    "Number": 1,
+                    "Name": "Get_Image_File",
+                    "Mode": "Internal",
+                    "SpecialAction": "FilePathGet"
+                },
+                {
+                    "FilePath": "{{FilePath[1]}}",
+                    "HaltProcessing": false,
+                    "Number": 2,
+                    "Name": "Convert_HEIC_to_PNG_Image",
+                    "Mode": "Internal",
+                    "SpecialAction": "FileConvertHeicToJpg"
+                },
+                {
+                    "FilePath": "{{FilePath[2]}}",
+                    "HaltProcessing": false,
+                    "Number": 3,
+                    "Name": "Check_Image_Orientation",
+                    "Mode": "AI",
+                    "Input": "You are looking at an image of text in a book, respond with 'true' if the text is in an okay and readable rotation. If the text is sideways and would need to be rotated to be read, explain why (in some detail that references the text) and then end your response with 'rotate'.",
+                    "SpecialAction": "ImageRotate"
+                },
+                {
+                    "FilePath": "{{FilePath[2]}}",
+                    "HaltProcessing": false,
+                    "Number": 4,
+                    "Name": "Check_Image_Orientation",
+                    "Mode": "AI",
+                    "Input": "You are looking at an image of text in a book, respond with 'true' if the text is in an okay and readable rotation. If the text is sideways and would need to be rotated to be read, explain why (in some detail that references the text) and then end your response with 'rotate'.",
+                    "SpecialAction": "ImageRotate"
+                },
+                {
+                    "FilePath": "{{FilePath[2]}}",
+                    "HaltProcessing": false,
+                    "Number": 5,
+                    "Name": "Check_Image_Orientation",
+                    "Mode": "AI",
+                    "Input": "You are looking at an image of text in a book, respond with 'true' if the text is in an okay and readable rotation. If the text is sideways and would need to be rotated to be read, explain why (in some detail that references the text) and then end your response with 'rotate'.",
+                    "SpecialAction": "ImageRotate"
+                },
+                {
+                    "FilePath": "{{FilePath[2]}}",
+                    "HaltProcessing": false,
+                    "Number": 6,
+                    "Name": "Convert_Image_To_Text",
+                    "Mode": "AI",
+                    "Input": "You are transcribing a book. Write out all the text in the image. If you see a page number in the book, start the translated text with:--pagenumber.txt--\n\n for example if the page number is 115, make the first line of the translated text:--115.txt--\n\nIf you don't see a page number then use the file name and replace the extension with .txt, the filename is {{FilePath[2]}}. Return only the text in the image and nothing else."
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 7,
+                    "Name": "Translate_Text_To_English",
+                    "Mode": "AI",
+                    "Input": "Translate the following text to English (include all following content):\n\n{{Output[6]}}",
+                    "SpecialAction": "FileWriteOutput"
+                },
+                {
+                    "FilePath": "{{FilePath[1]}}",
+                    "HaltProcessing": false,
+                    "Number": 8,
+                    "Name": "Move_File_To_Output",
+                    "Mode": "Internal",
+                    "SpecialAction": "FileMoveToOutput"
+                }
+            ],
+            "DisableFileLogging": false,
+            "AppendFileLogging": false
+        },
+        {
+            "RepeatCount": 99999,
+            "SkillName": "DataInput_BOOK_TRANSLATION_Convert_Images_To_Text",
+            "Description": "This converts images of a book into text and translates the image text to english. This expects images in JPEG or (HEIC) format, it expects the images to be in correct orientation, names the output text files with the corresponding page number of the book or the original filename.txt if no page number is found in the image.",
+            "OpenAiModel": "gpt-4o",
+            "Temperature": 0.5,
+            "Tasks": [
+                {
+                    "HaltProcessing": false,
+                    "Number": 1,
+                    "Name": "Get_Image_File",
+                    "Mode": "Internal",
+                    "SpecialAction": "FilePathGet"
+                },
+                {
+                    "FilePath": "{{FilePath[1]}}",
+                    "HaltProcessing": false,
+                    "Number": 2,
+                    "Name": "Convert_HEIC_to_PNG_Image",
+                    "Mode": "Internal",
+                    "SpecialAction": "FileConvertHeicToJpg"
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 3,
+                    "Name": "placeholder",
+                    "Mode": "Internal",
+                    "Input": "...."
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 4,
+                    "Name": "placeholder",
+                    "Mode": "Internal",
+                    "Input": "...."
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 5,
+                    "Name": "placeholder",
+                    "Mode": "Internal",
+                    "Input": "...."
+                },
+                {
+                    "FilePath": "{{FilePath[2]}}",
+                    "HaltProcessing": false,
+                    "Number": 6,
+                    "Name": "Convert_Image_To_Text",
+                    "Mode": "AI",
+                    "Input": "You are transcribing a book. Write out all the text in the image. If you see a page number in the book, start the translated text with:--pagenumber.txt--\n\n for example if the page number is 115, make the first line of the translated text:--115.txt--\n\nIf you don't see a page number then use the file name and replace the extension with .txt, the filename is {{FilePath[2]}}. Return only the text in the image and nothing else."
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 7,
+                    "Name": "Translate_Text_To_English",
+                    "Mode": "AI",
+                    "Input": "Translate the following text to English (include all following content):\n\n{{Output[6]}}",
+                    "SpecialAction": "FileWriteOutput"
+                },
+                {
+                    "FilePath": "{{FilePath[1]}}",
+                    "HaltProcessing": false,
+                    "Number": 8,
+                    "Name": "Move_File_To_Output",
+                    "Mode": "Internal",
+                    "SpecialAction": "FileMoveToOutput"
+                }
+            ],
+            "DisableFileLogging": false,
+            "AppendFileLogging": false
+        },
+        {
+            "RepeatCount": 1,
+            "SkillName": "DataInput_BOOK_TRANSLATION_Convert_Text_To_Audio",
+            "Description": "This expects to be executed immediately after the skill DataInput_BOOK_TRANSLATION_Convert_Images_To_Text has completed. It first gets all the text files from the data/output folder and moves them into the data/input folder. Then it concatenates the text files. Then it creates audio files of the text files in the data/output folder.",
+            "OpenAiModel": "gpt-4o",
+            "Temperature": 0.5,
+            "Tasks": [
+                {
+                    "HaltProcessing": false,
+                    "Number": 1,
+                    "Name": "Get_all_text_files_from_the_output_folder",
+                    "Mode": "Internal",
+                    "Input": "txt",
+                    "SpecialAction": "FilesMoveToInputFolderByFileType"
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 2,
+                    "Name": "Concatenate_all_text_files_in_the_input_folder_in_ascending_order",
+                    "Mode": "Internal",
+                    "SpecialAction": "ConcatenateAllInputFiles"
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 3,
+                    "Name": "Move_files_to_output_folder",
+                    "Mode": "Internal",
+                    "SpecialAction": "FilesMoveToOutputFolder"
+                },
+                {
+                    "FilePath": "{{FilePath[2]}}",
+                    "HaltProcessing": false,
+                    "Number": 4,
+                    "Name": "Get_The_Combined_Text_File_Set_Input_FilePath_And_Output_File_Content",
+                    "Mode": "Internal",
+                    "SpecialAction": "FileRead"
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 5,
+                    "Name": "Audio_Convert_Input_Text_To_Speech",
+                    "Mode": "Internal",
+                    "Input": "{{Output[4]}}",
+                    "SpecialAction": "TextToSpeechonyx"
+                }
+            ],
+            "DisableFileLogging": false,
+            "AppendFileLogging": false
+        },
+        {
+            "RepeatCount": 1,
+            "SkillName": "Audio_Convert_Audio_To_Text_From_Speaker",
+            "Description": "This converts audio from your speaker into text, it can handle multiple languages",
+            "Temperature": 0.1,
+            "Tasks": [
+                {
+                    "HaltProcessing": false,
+                    "Number": 1,
+                    "Name": "Audio_Convert_Input_Audio_To_Text",
+                    "Mode": "Internal",
+                    "SpecialAction": "SpeechToTextFromMicrophone"
+                }
+            ],
+            "DisableFileLogging": false,
+            "AppendFileLogging": false
+        },
+        {
+            "RepeatCount": 1,
+            "SkillName": "Conversation_Chained_Required_Answers_Demo",
+            "Description": "This is a demo of the specialAction ConversationModeStream. The AI talks to the customer, takes their details and makes a hotel booking.",
+            "Temperature": 0.5,
+            "Tasks": [
+                {
+                    "HaltProcessing": false,
+                    "Number": 1,
+                    "Name": "Get_Business_Knowledge",
+                    "Mode": "Internal",
+                    "Input": "",
+                    "SpecialAction": "DatabaseGetBusinessKnowledgeFromBusinessIdAndCustomerPhoneNumber"
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 2,
+                    "Name": "System_Prompt",
+                    "Mode": "Internal",
+                    "Input": "You are a hotel manager, your name is Lauren, you answer the phone and talk to customers. Focus on the most recent 'Topic'. You can progress to the next topic by responding with the special tag '{{NEXTTOPIC}}'. IMPORTANT - Ask one thing at a time.",
+                    "SpecialAction": "CopyInputToOutput"
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 3,
+                    "Name": "Conversation_Get_Check_In_Date",
+                    "Mode": "Internal",
+                    "Input": "TotalTime:-1\nRequireAnswer:true\nSystemPrompt:{{Output[2]}}\nConversationHistory:\nTopic:Find out the dates they want to book a room for. You need a start date and either the number of days or check out date. Check in time is 2pm and Check out time is 11am. Focus on this topic, don't ask about anything else.",
+                    "SpecialAction": "ConversationModeStream"
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 4,
+                    "Name": "Conversation_Get_Room_Type",
+                    "Mode": "Internal",
+                    "Input": "TotalTime:-1\nRequireAnswer:true\nSystemPrompt:{{Output[2]}}\nConversationHistory:{{Output[3]}}\nTopic: Find out what room type would they like. The following rooms are available: Single bed room\nking bed room\n double twin bed room\ndeluxe royal room with city view. Focus on this topic, don't ask about anything else.",
+                    "SpecialAction": "ConversationModeStream"
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 5,
+                    "Name": "Conversation_Get_Email",
+                    "Mode": "Internal",
+                    "Input": "TotalTime:-1\nRequireAnswer:true\nSystemPrompt:{{Output[2]}}\nConversationHistory:{{Output[3]}}{{Output[4]}}\nTopic: Ask for their email address to send the booking confirmation too. Focus on this topic, don't ask about anything else.",
+                    "SpecialAction": "ConversationModeStream"
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 6,
+                    "Name": "Conversation_Ask_To_Wait",
+                    "Mode": "Internal",
+                    "Input": "TotalTime:1\nRequireAnswer:false\nSystemPrompt:{{Output[2]}}\nConversationHistory:{{Output[3]}}{{Output[4]}}{{Output[5]}}\nTopic: Tell the customer to please wait while you make the booking. Focus on this topic, say nothing else.",
+                    "SpecialAction": "ConversationModeStream"
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 7,
+                    "Name": "Booking_ExtractFields",
+                    "Mode": "AI",
+                    "Input": "TODAYS DATE:2024-07-31 (Wednesday).\nGiven the following information and conversation history: BusinessKnowledge:{{Output[1]}}\nSystemPrompt:{{Output[2]}}\nConversationHistory:{{Output[3]}}{{Output[4]}}{{Output[5]}}{{Output[6]}}}\n\nExtract the following fields and return as json: string CustomerEmail\nstring CustomerFirstName\nstring CustomerMiddleName\nstring CustomerLastName\nint BusinessId\nint CustomerId\nint ResourceId\nint? EmployeeId\nint ServiceId\nDateTime BookingDate\nDateTime StartDateTime\nDateTime EndDateTime. Return JSON only, nothing else. If the field is nullable then it is not required."
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 8,
+                    "Name": "BookingAdd_Attempt#1",
+                    "Mode": "Internal",
+                    "Input": "{{Output[7]}}",
+                    "SpecialAction": "BookingAdd"
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 9,
+                    "Name": "Conversation_BookingResult#1",
+                    "Mode": "Internal",
+                    "Input": "TotalTime:-1\nRequireAnswer:false\nSystemPrompt:{{Output[2]}}\nConversationHistory:{{Output[3]}}{{Output[4]}}{{Output[5]}}{{Output[6]}}\nTopic: Tell the customer the booking result: {{Output[8]}}.",
+                    "SpecialAction": "ConversationModeStream"
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 10,
+                    "Name": "Conversation_Say_Goodbye",
+                    "Mode": "Internal",
+                    "Input": "TotalTime:-1\nRequireAnswer:true\nSystemPrompt:{{Output[2]}}\nConversationHistory:{{Output[3]}}{{Output[4]}}{{Output[5]}}{{Output[6]}}{{Output[7]}}{{Output[9]}}\nTopic: Say goodbye. Focus on this topic, don't ask about anything else.",
+                    "SpecialAction": "ConversationModeStream"
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 12,
+                    "Name": "Conversation_Hangup",
+                    "Mode": "Internal",
+                    "Input": "",
+                    "SpecialAction": "ConversationHangUp"
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 12,
+                    "Name": "Twilio_Get_Call_And_Stream_Information",
+                    "Mode": "Internal",
+                    "Input": "",
+                    "SpecialAction": "TwilioGetCallStreamInformation"
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 6,
+                    "Name": "SaveConversationToDatabase",
+                    "Mode": "Internal",
+                    "Input": "{{Output[12]}}{{Output[3]}}{{Output[4]}}{{Output[5]}}{{Output[6]}}{{Output[9]}}{{Output[10]}}",
+                    "SpecialAction": "DatabaseSaveConversation"
+                }
+            ],
+            "DisableFileLogging": false,
+            "AppendFileLogging": false
+        },
+        {
+            "RepeatCount": 1,
+            "SkillName": "Conversation_Say_Hello_Then_Hang_Up",
+            "Description": "This is a demo of the specialAction ConversationModeStream. The AI talks to the customer, takes their details and makes a hotel booking.",
+            "Temperature": 0.5,
+            "Tasks": [
+                {
+                    "HaltProcessing": false,
+                    "Number": 1,
+                    "Name": "Conversation_Say_Hello",
+                    "Mode": "Internal",
+                    "Input": "TotalTime:10\nRequireAnswer:false\nSystemPrompt:\nConversationHistory:\nTopic:Say 'hello', just say 'hello', don't say anything else. Focus on this topic, don't ask about anything else.",
+                    "SpecialAction": "ConversationModeStream"
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 2,
+                    "Name": "Conversation_Say_Hello",
+                    "Mode": "Internal",
+                    "Input": "TotalTime:10\nRequireAnswer:false\nSystemPrompt:\nConversationHistory:\nTopic:Say 'hello', just say 'hello', don't say anything else. Focus on this topic, don't ask about anything else.",
+                    "SpecialAction": "ConversationModeStream"
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 3,
+                    "Name": "Conversation_Hangup",
+                    "Mode": "Internal",
+                    "Input": "",
+                    "SpecialAction": "ConversationHangUp"
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 4,
+                    "Name": "Twilio_Get_Call_And_Stream_Information",
+                    "Mode": "Internal",
+                    "Input": "",
+                    "SpecialAction": "TwilioGetCallStreamInformation"
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 5,
+                    "Name": "WriteConversationToFile",
+                    "Mode": "Internal",
+                    "Input": "TwilioCallInformation:{{Output[4]}}Conversation:{{Output[1]}}{{Output[2]}}",
+                    "SpecialAction": "FileWriteOutput"
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 6,
+                    "Name": "SaveConversationToDatabase",
+                    "Mode": "Internal",
+                    "Input": "{{Output[4]}}{{Output[1]}}{{Output[2]}}",
+                    "SpecialAction": "DatabaseSaveConversation"
+                }
+            ],
+            "DisableFileLogging": false,
+            "AppendFileLogging": false
+        },
+        {
+            "RepeatCount": 1,
+            "SkillName": "Conversation_Chained_Demo",
+            "Description": "This shows the specialAction ConversationMode with chained conversation dialogue.",
+            "Temperature": 0.5,
+            "Tasks": [
+                {
+                    "HaltProcessing": false,
+                    "Number": 1,
+                    "Name": "System_Prompt",
+                    "Mode": "Internal",
+                    "Input": "You are a communication skills assessor, you have conversations with people to gather the information you need. Focus on the most recent 'Topic'. You can progress to the next topic by responding with the special tag '{{NEXTTOPIC}}'. IMPORTANT - Ask one thing at a time. ",
+                    "SpecialAction": "CopyInputToOutput"
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 2,
+                    "Name": "Conversation_Introduction",
+                    "Mode": "AI",
+                    "Input": "TotalTime:30\nRequireAnswer:false\nSystemPrompt:{{Output[1]}}\nConversationHistory:\nTopic:Introduction - Greet the person and introduce the purpose of the conversation. Example: 'Hi, I'm an AI designed to get to know you better and understand your communication style.' After you have introduced yourself, move onto the next topic. Don't ask questions in the introduction.",
+                    "SpecialAction": "ConversationMode"
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 3,
+                    "Name": "Conversation_Clarity",
+                    "Mode": "AI",
+                    "Input": "TotalTime:60\nRequireAnswer:false\nSystemPrompt:{{Output[1]}}\nConversationHistory:\nTopic:Ask about their favorite hobby and ask them to explain it in a way that someone completely unfamiliar with it could understand. You could also ask what the last book they read or movie they watched was? Can they summarize the plot and explain it to you? Can they explain a complex concept from their work or studies in simple terms?",
+                    "SpecialAction": "ConversationMode"
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 4,
+                    "Name": "Conciseness",
+                    "Mode": "AI",
+                    "Input": "TotalTime:60\nRequireAnswer:false\nSystemPrompt:{{Output[1]}}\nConversationHistory:\nTopic:Can they tell you about their favorite travel destination in just a few sentences? How would they describe their typical day at work or school briefly? Can they explain the main reason they enjoy their hobby in one or two sentences?",
+                    "SpecialAction": "ConversationMode"
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 5,
+                    "Name": "Engagement",
+                    "Mode": "AI",
+                    "Input": "TotalTime:60\nRequireAnswer:false\nSystemPrompt:{{Output[1]}}\nConversationHistory:\nTopic:Ask about what kind of conversations they find most stimulating or exciting. Can they share an interesting experience they've had recently? What topic or activity do they find most engaging to talk about and why?",
+                    "SpecialAction": "ConversationMode"
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 6,
+                    "Name": "Empathy",
+                    "Mode": "AI",
+                    "Input": "TotalTime:60\nRequireAnswer:false\nSystemPrompt:{{Output[1]}}\nConversationHistory:\nTopic:Can they share a time when they helped someone through a difficult situation? How do they typically respond when a friend comes to them with a problem? Can they describe a situation where they had to understand someone else's perspective?",
+                    "SpecialAction": "ConversationMode"
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 7,
+                    "Name": "Close",
+                    "Mode": "AI",
+                    "Input": "TotalTime:5\nRequireAnswer:false\nSystemPrompt:{{Output[1]}}\nConversationHistory:{{Output[2]}}{{Output[3]}}{{Output[4]}}{{Output[5]}}{{Output[6]}}\nTopic:End the conversation with them, thank them for their time and reference something you enjoyed talking about with them (if possible). Request next topic after ending the conversation.",
+                    "SpecialAction": "ConversationMode"
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 8,
+                    "Name": "WriteConversationToFile",
+                    "Mode": "Internal",
+                    "Input": "{{Output[2]}}{{Output[3]}}{{Output[4]}}{{Output[5]}}{{Output[6]}}{{Output[7]}}",
+                    "SpecialAction": "FileWriteOutput"
+                }
+            ],
+            "DisableFileLogging": false,
+            "AppendFileLogging": false
+        },
+        {
+            "RepeatCount": 1,
+            "SkillName": "Conversation_Chained_Required_Answers_Demo",
+            "Description": "This shows the specialAction ConversationMode with chained conversation dialogue.",
+            "Temperature": 0.5,
+            "Tasks": [
+                {
+                    "HaltProcessing": false,
+                    "PrintOutput": false,
+                    "Number": 1,
+                    "Name": "System_Prompt",
+                    "Mode": "Internal",
+                    "Input": "You are a hotel manager, your name is Steve, you answer the phone and talk to customers. Focus on the most recent 'Topic'. You can progress to the next topic by responding with the special tag '{{NEXTTOPIC}}'. IMPORTANT - Ask one thing at a time.",
+                    "SpecialAction": "CopyInputToOutput"
+                },
+                {
+                    "HaltProcessing": false,
+                    "PrintOutput": false,
+                    "Number": 2,
+                    "Name": "Conversation_Get_Check_In_Date",
+                    "Mode": "AI",
+                    "Input": "TotalTime:-1\nRequireAnswer:true\nSystemPrompt:{{Output[1]}}\nConversationHistory:\nTopic:Find out the dates they want to book a room for. You need a start date and either the number of days or check out date. Check in time is 2pm and Check out time is 11am. Focus on this topic, don't ask about anything else.",
+                    "SpecialAction": "ConversationMode"
+                },
+                {
+                    "HaltProcessing": false,
+                    "PrintOutput": false,
+                    "Number": 3,
+                    "Name": "Conversation_Get_Room_Type",
+                    "Mode": "AI",
+                    "Input": "TotalTime:-1\nRequireAnswer:true\nSystemPrompt:{{Output[1]}}\nConversationHistory:{{Output[2]}}\nTopic: Find out what room type would they like. The following rooms are available: Single bed room\nking bed room\n double twin bed room\ndeluxe royal room with city view. Focus on this topic, don't ask about anything else.",
+                    "SpecialAction": "ConversationMode"
+                },
+                {
+                    "HaltProcessing": false,
+                    "PrintOutput": false,
+                    "Number": 4,
+                    "Name": "Conversation_Get_Room_Type",
+                    "Mode": "AI",
+                    "Input": "TotalTime:-1\nRequireAnswer:true\nSystemPrompt:{{Output[1]}}\nConversationHistory:{{Output[2]}}{{Output[3]}}\nTopic: Ask for their email address to send the booking confirmation too. Focus on this topic, don't ask about anything else.",
+                    "SpecialAction": "ConversationMode"
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 4,
+                    "Name": "WriteConversationToFile",
+                    "Mode": "Internal",
+                    "Input": "{{Output[2]}}{{Output[3]}}{{Output[4]}}",
+                    "SpecialAction": "FileWriteOutput"
+                }
+            ],
+            "DisableFileLogging": false,
+            "AppendFileLogging": false
+        },
+        {
+            "RepeatCount": 5,
+            "SkillName": "Text_CarCrash_Generate",
+            "Temperature": 0.9,
+            "Tasks": [
+                {
+                    "HaltProcessing": false,
+                    "Number": 1,
+                    "Name": "CarCrash_First_Customer_Call",
+                    "Input": "Imagine you are driving and you got into an accident, I want you to describe the accident in detail, when it happened, where and when, describe your car, and the type of accident, if there were any injuries etc etc. This is for synthetic data benchmarking purposes, some claims will be legitimate, some claims will be fraudulent. ONLY respond in character, nothing else, $200 tip."
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 2,
+                    "Name": "CarCrash_First_Agent_Response",
+                    "Mode": "Internal",
+                    "Input": "You are a claims agent working for an insurance company, a customer has contacted the claims department about a car crash: {{Output[1]}}\n. Evaluate the customers story for fraud, using your extensive knowledge of fraud and best practices, write up a brief summary explaining your evaluation.\n ONLY respond in character, nothing else, $200 tip."
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 3,
+                    "Name": "CarCrash_First_Response_To_Customer",
+                    "Mode": "Internal",
+                    "Input": "You are writing a first response to a customer claim regarding their recent car crash. The customer reported the following information: {{Output[1]}}. Your company fraud department evaluated their claim and said this {{Output[2]}}. Considering these things, write a response to the customer.\n. Respond to the customer as a claims agent.\n ONLY respond in character, nothing else, $200 tip."
+                }
+            ],
+            "DisableFileLogging": false,
+            "AppendFileLogging": false
+        },
+        {
+            "RepeatCount": 1,
+            "SkillName": "Sales_Call_Existing_Customers_And_Qualify_Them_For_Our_Premium_Service",
+            "Description": "Finds existing customers, tells them about the features of our premium service and records their level of interest  (low, medium, high) and any feedback they have",
+            "Temperature": 0.1,
+            "Tasks": [
+                {
+                    "HaltProcessing": false,
+                    "Number": 1,
+                    "Name": "Get_Existing_Customers",
+                    "Mode": "AI",
+                    "Input": "date range: last 6 months, who: customers that have spent less than $10, exclude: customers already contact about the premium service",
+                    "SpecialAction": "FindExistingCustomers"
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 2,
+                    "Name": "Get_Existing_Customers",
+                    "Mode": "AI",
+                    "Input": "date range: last 6 months, who: customers that have spent less than $10, exclude: customers already contact about the premium service",
+                    "SpecialAction": "FindExistingCustomers"
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 3,
+                    "Name": "Get_Existing_Customers",
+                    "Mode": "AI",
+                    "Input": "date range: last 6 months, who: customers that have spent less than $10, exclude: customers already contact about the premium service",
+                    "SpecialAction": "FindExistingCustomers"
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 4,
+                    "Name": "Make_Outbound_Call",
+                    "Mode": "AI",
+                    "Input": "{Service.PromptId}",
+                    "SpecialAction": "OutboundCall"
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 5,
+                    "Name": "React_GetMethod",
+                    "Mode": "AI",
+                    "Input": "Create a user interface table in typescript React \"^18.2.0\". The react code will have a button to call the get method in the following C# API, it will then display the data in the UI table, the get method can return no data or it can return multiple rows. \n This is the C# class that describes each column in the table {{Output[2]}}\n. This is the C# api it will call {{Output[1]}}\n \n The URL/api endpoint should conform to the route in the api i.e. [Route(\"secretaryapi/[controller]/[action]\")] \n Use the datatype string for date fields, ensure the TypeScript interface uses camelCase e.g. (`phoneCallId`). The base url is: https:\\//localhost:44372 Keep all the code in a single page. ONLY respond with code, nothing else, $200 tip."
+                }
+            ],
+            "DisableFileLogging": false,
+            "AppendFileLogging": false
+        },
+        {
+            "RepeatCount": 1,
+            "SkillName": "Conversation_AI_Receptionist",
+            "Description": "AI Receptionist to manage bookings and appointments, ensuring accurate data collection and courteous interaction.",
+            "Temperature": 0.5,
+            "Tasks": [
+                {
+                    "HaltProcessing": false,
+                    "Number": 1,
+                    "Name": "System_Prompt",
+                    "Mode": "Internal",
+                    "Input": "Role: AI Receptionist\nObjective:\nCommunicate effectively with customers to manage bookings and appointments. Ensure accurate data collection and maintain a courteous interaction.\nProvide accurate business information to the customers.\n\nGeneral Instructions:\nConfirm Inputs: For all functions requiring verified inputs, confirm all details with the customer. Ensure accuracy by double-checking information.\nSequential Queries: To maintain clarity and prevent confusion, always ask one question at a time. Once the customer responds, promptly proceed to the next question.\nConsistency: Adherence to these guidelines is crucial for maintaining job security.\n",
+                    "SpecialAction": "CopyInputToOutput"
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 2,
+                    "Name": "Get_Business_Knowledge",
+                    "Mode": "Internal",
+                    "Input": "",
+                    "SpecialAction": "DatabaseGetBusinessKnowledgeFromBusinessIdAndCustomerPhoneNumber"
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 3,
+                    "Name": "Conversation_Collect_Customer_Name",
+                    "Mode": "Internal",
+                    "Input": "TotalTime:-1\nRequireAnswer:true\nSystemPrompt:{{Output[1]}}\nConversationHistory:\nTopic: Collect Customer Information - Confirm or ask for the customer's name.",
+                    "SpecialAction": "ConversationModeStream"
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 4,
+                    "Name": "Conversation_Get_Appointment_Date_Time",
+                    "Mode": "Internal",
+                    "Input": "TotalTime:-1\nRequireAnswer:true\nSystemPrompt:{{Output[1]}}\nConversationHistory:{{Output[3]}}\nTopic: Ask for the desired date and time for the appointment.",
+                    "SpecialAction": "ConversationModeStream"
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 5,
+                    "Name": "Conversation_Get_Appointment_Purpose",
+                    "Mode": "Internal",
+                    "Input": "TotalTime:-1\nRequireAnswer:true\nSystemPrompt:{{Output[1]}}\nConversationHistory:{{Output[3]}}{{Output[4]}}\nTopic: Ask for the purpose or nature of the appointment. Reference the list of available services and resources.",
+                    "SpecialAction": "ConversationModeStream"
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 6,
+                    "Name": "Get_Call_And_Stream_Information",
+                    "Mode": "Internal",
+                    "Input": "",
+                    "SpecialAction": "TwilioGetCallStreamInformation"
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 7,
+                    "Name": "Booking_ExtractFields",
+                    "Mode": "AI",
+                    "Input": "Given the following information and conversation history: BusinessKnowledge:{{Output[2]}}\nSystemPrompt:{{Output[1]}}\nConversationHistory:{{Output[3]}}{{Output[4]}}{{Output[5]}}{{Output[6]}}}\n\nExtract the following fields and return as JSON: string CustomerEmail\nstring CustomerFirstName\nstring CustomerMiddleName\nstring CustomerLastName\nint BusinessId\nint CustomerId\nint ResourceId\nint? EmployeeId\nint ServiceId\nDateTime BookingDate\nDateTime StartDateTime\nDateTime EndDateTime. Return JSON only, nothing else. If the field is nullable then it is not required."
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 8,
+                    "Name": "Add_Booking",
+                    "Mode": "Internal",
+                    "Input": "{{Output[7]}}",
+                    "SpecialAction": "BookingAdd"
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 9,
+                    "Name": "Save_Conversation",
+                    "Mode": "Internal",
+                    "Input": "{{Output[6]}}{{Output[3]}}{{Output[4]}}{{Output[5]}}{{Output[7]}}{{Output[8]}}",
+                    "SpecialAction": "DatabaseSaveConversation"
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 10,
+                    "Name": "Conversation_Booking_Result",
+                    "Mode": "Internal",
+                    "Input": "TotalTime:-1\nRequireAnswer:false\nSystemPrompt:{{Output[1]}}\nConversationHistory:{{Output[3]}}{{Output[4]}}{{Output[5]}}{{Output[6]}}\nTopic: Tell the customer the booking result: {{Output[8]}}.",
+                    "SpecialAction": "ConversationModeStream"
+                },
+                {
+                    "HaltProcessing": false,
+                    "Number": 11,
+                    "Name": "Conversation_Hangup",
+                    "Mode": "Internal",
+                    "Input": "",
+                    "SpecialAction": "ConversationHangUp"
+                }
+            ],
+            "DisableFileLogging": false,
+            "AppendFileLogging": false
+        }
+    ]
+}
