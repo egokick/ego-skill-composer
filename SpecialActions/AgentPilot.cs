@@ -2,23 +2,32 @@
 using skill_composer.Models;
 using skill_composer.Helper;
 using Task = System.Threading.Tasks.Task;
+using System.IO;
+using System.Linq;
 
 namespace skill_composer.SpecialActions
 {
     /// <summary>
     /// Implements an “agent pilot” mode that continuously consults the AI while still accepting user input.
     /// The mode runs until the user types "stop". User instructions are appended to the original goal.
-    /// The agent loads the Skills.json file and provides a list of all available skill names and their descriptions
-    /// in the context sent to the AI. If the AI response includes a command formatted as "InvokeSkill: <SkillName>",
-    /// the agent will load that skill from the Skills.json file, provide its content for context, and for any task in
-    /// that skill with Mode "User", ask the AI the question specified in its Input, assign the response to that task's Output,
+    /// The agent loads the Skills.json file and provides a list of all available skill names and their descriptions,
+    /// as well as the content of the SpecialActionRegistry file, in the context sent to the AI.
+    /// If the AI response includes a command formatted as "InvokeSkill: <SkillName>", the agent will load that skill
+    /// from the Skills.json file, provide you with its content, and for any task in that skill with Mode "User",
+    /// ask the AI the question specified in its Input, assign the response to that task's Output,
     /// then execute the skill and feed its output back to the AgentPilot loop.
     /// Additionally, whenever the conversation history is updated, the AI is called to provide a one-sentence summary.
+    /// 
+    /// > **Additional Context:**  
+    /// > The code for any existing SpecialAction can be read by calling a skill with the SpecialAction
+    /// > `FilePathsGetByDirectory` (to retrieve the file paths) followed by a task with the SpecialAction `FilesRead`
+    /// > (to read the file content). This makes it possible to inspect or audit any SpecialAction's implementation.
     /// </summary>
     public class AgentPilot : ISpecialAction
     {
         public async Task<Models.Task> Execute(Models.Task task, Skill selectedSkill)
         {
+            var generalKnowledge = "If you are going to create a new skill, you should plan out what you want to do and write the code for the SpecialActions, you can then call the existing skill '_SpecialAction_Design' to create that SpecialAction";
             // Load available skills list at the start
             string availableSkillsContext = "";
             try
@@ -37,7 +46,26 @@ namespace skill_composer.SpecialActions
                 Console.WriteLine($"Error loading skills list: {ex.Message}");
             }
 
-            // Use task.Output as the initial goal (set by the user) rather than task.Input
+            // Load the content of SpecialActionRegistry.cs file to include in the context.
+            string specialActionRegistryContent = "";
+            try
+            {
+                string registryPath = @"C:\source\ego-skill-composer\Helper\SpecialActionRegistry.cs";
+                if (File.Exists(registryPath))
+                {
+                    specialActionRegistryContent = File.ReadAllText(registryPath);
+                }
+                else
+                {
+                    specialActionRegistryContent = "SpecialActionRegistry.cs not found at " + registryPath;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading SpecialActionRegistry.cs: {ex.Message}");
+            }
+
+            // Use task.Output as the initial goal (set by the user) rather than task.Input.
             string originalGoal = task.Output?.Trim() ?? "";
             // If no initial goal is provided, repeatedly prompt until one is received.
             while (string.IsNullOrWhiteSpace(originalGoal))
@@ -62,9 +90,11 @@ namespace skill_composer.SpecialActions
             };
 
             int callCount = 0;
-            string previousSkillOutput = string.Empty;
-
-            // Track conversation history count for summarization
+            // Store the complete output from the last invoked skill.
+            string fullPreviousSkillOutput = string.Empty;
+            // For console display, we may show a one-sentence summary.
+            string previousSkillSummary = string.Empty;
+            // Track conversation history count for summarization.
             int lastSummarizedCount = conversationHistory.Count;
 
             Console.WriteLine("Agent Pilot mode started. Type new instructions to append or 'stop' to exit.");
@@ -78,7 +108,8 @@ namespace skill_composer.SpecialActions
                     string summaryPrompt = $"Please summarize the last action taken by the AI and what has happened so far in Agent Pilot mode. Keep the summary brief, 1 sentence maximum. " +
                                            $"Conversation snippet: {conversationSnippet}";
                     string aiSummary = await Program.api.GetAIResponse(summaryPrompt);
-                    Console.WriteLine($"\n[AI Summary]: {aiSummary}\n");
+                    previousSkillSummary = GetOneSentenceSummary(aiSummary);
+                    Console.WriteLine($"[AI Summary]: {previousSkillSummary}");
                     lastSummarizedCount = conversationHistory.Count;
                 }
             }
@@ -107,11 +138,14 @@ namespace skill_composer.SpecialActions
                 }
 
                 // Build the prompt for the AI call.
+                // Here we include the complete output of the last invoked skill without summarization.
                 string summarizedHistory = SummarizeHistory(conversationHistory);
                 string prompt = $"API AI Call Count: {callCount}\n" +
+                                $"General Info: {generalKnowledge}\n" +
                                 $"Available Skills:\n{availableSkillsContext}\n" +
+                                $"SpecialActionRegistry Content:\n{specialActionRegistryContent}\n" +
                                 $"Conversation History: {summarizedHistory}\n" +
-                                $"Previous Skill Output: {previousSkillOutput}\n" +
+                                $"Previous Skill Full Output: {fullPreviousSkillOutput}\n" +
                                 "Determine the next action to achieve the goal. " +
                                 "If you want to invoke another skill, respond with 'InvokeSkill: <SkillName>' at the beginning of your response. " +
                                 "When you invoke a skill, the agent will load that skill from the Skills.json file, " +
@@ -152,24 +186,25 @@ namespace skill_composer.SpecialActions
 
                                 foreach (var t in invokedSkill.Tasks.Where(t => t.Mode.Equals("User", System.StringComparison.OrdinalIgnoreCase)))
                                 {
-                                    // Build a context for the task call including available skills, conversation history, goal, and previous output.
+                                    // Build a context for the task call including available skills, conversation history, goal, full previous output and registry content.
                                     string taskContext = $"Available Skills:\n{availableSkillsContext}\n" +
+                                                         $"General Info: {generalKnowledge}\n" +
+                                                         $"SpecialActionRegistry Content:\n{specialActionRegistryContent}\n" +
                                                          $"Conversation History: {summarizedHistory}\n" +
                                                          $"Original Goal: {originalGoal}\n" +
-                                                         $"Previous Skill Output: {previousSkillOutput}\n" +
-                                                         $"Task Input: {t.Input}"; 
-
+                                                         $"Previous Skill Full Output: {fullPreviousSkillOutput}\n" +
+                                                         $"Task Input: {t.Input}";
                                     string responseForTask = await Program.api.GetAIResponse(taskContext);
                                     t.Output = responseForTask;
                                     conversationHistory.Add($"AI provided response for invoked skill '{skillName}' task '{t.Name}': {responseForTask}");
                                     await UpdateSummaryIfNeeded();
                                 }
 
-                                // Prevent console logging, the AI will summarize it.
+                                // Prevent console logging; the AI will summarize it.
                                 invokedSkill.Tasks.ForEach(x => x.PrintOutput = false);
-
                                 string invokedOutput = Program.ProcessSkill(invokedSkill);
-                                previousSkillOutput = invokedOutput;
+                                // Update the complete output variable with the full result.
+                                fullPreviousSkillOutput = invokedOutput;
                                 conversationHistory.Add($"Invoked skill '{skillName}' executed with output: {invokedOutput}");
                                 await UpdateSummaryIfNeeded();
                             }
@@ -185,12 +220,12 @@ namespace skill_composer.SpecialActions
                     }
                     else
                     {
-                        previousSkillOutput = aiResponse;
+                        fullPreviousSkillOutput = aiResponse;
                     }
                 }
                 else
                 {
-                    previousSkillOutput = aiResponse;
+                    fullPreviousSkillOutput = aiResponse;
                 }
 
                 await Task.Delay(1000);

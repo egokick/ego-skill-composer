@@ -20,8 +20,7 @@ namespace skill_composer.Helper
 
             var tokenResponse = JsonConvert.DeserializeObject<TemporaryTokenResponse>(responseString);
 
-            stopwatch.Stop();
-            Console.WriteLine($"GetAssemblyAiWebsocketTemporaryToken: {stopwatch.ElapsedMilliseconds} ms");
+            stopwatch.Stop(); 
 
             return tokenResponse?.token ?? throw new InvalidOperationException("Failed to get the temporary token.");
         }

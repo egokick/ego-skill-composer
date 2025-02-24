@@ -93,7 +93,8 @@ namespace skill_composer
             // If there is a UserPrompt and the user has not already responded i.e. in the second iteration, we already have the user answers from the first iteration
             if (task.Mode.ToLower() == "user" && !string.IsNullOrEmpty(task.Input) && string.IsNullOrEmpty(task.Output))
             {
-                Console.WriteLine(task.Input);
+                if(task.PrintOutput is null || task.PrintOutput == true)
+                    Console.WriteLine(task.Input);
 
                 task.Output = Console.ReadLine(); // ReadInputAsync().Result;
                 task.Output = task.Output.TrimEnd();

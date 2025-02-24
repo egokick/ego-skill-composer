@@ -92,8 +92,7 @@ namespace skill_composer.Models
             const string pattern = @"\+\d{11}";
 
             foreach (Match match in Regex.Matches(speech, pattern))
-            {
-                Console.WriteLine($"{match.Value}");
+            { 
                 var processedNumber = match.Value.Trim(); // Trim any leading/trailing whitespace
                 var numberInWords = processedNumber.FixPhoneNumber().FormatPhoneNumber(',').PhoneNumberToWords();
                 speech = speech.Replace(processedNumber, numberInWords);

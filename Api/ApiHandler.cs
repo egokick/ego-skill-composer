@@ -92,9 +92,7 @@ namespace skill_composer.Helper
                     await Task.Delay(TimeSpan.FromSeconds(1)); 
                     delayInSeconds++;
                 }
-            }, cts.Token);
-            
-            Console.WriteLine();
+            }, cts.Token); 
 
             try
             {
